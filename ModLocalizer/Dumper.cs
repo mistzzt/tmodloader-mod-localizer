@@ -21,8 +21,11 @@ namespace ModLocalizer
 		public void Run()
 		{
 			Directory.CreateDirectory(_mod.Name);
+			Directory.CreateDirectory(GetPath("Items"));
+			Directory.CreateDirectory(GetPath("NPCs"));
 
 			DumpBuildProperties();
+			DumpTmodProperties();
 		}
 
 		private void DumpBuildProperties()
@@ -40,9 +43,19 @@ namespace ModLocalizer
 			}
 		}
 
-		private string GetPath(string fileName, string category = null)
+		private void DumpTmodProperties()
 		{
-			return !string.IsNullOrWhiteSpace(category) ? Path.Combine(_mod.Name, category, fileName) : Path.Combine(_mod.Name, fileName);
+			var properties = _mod.Properties;
+
+			using (var fs = new FileStream(GetPath("ModInfo.json"), FileMode.Create))
+			{
+				using (var sw = new StreamWriter(fs))
+				{
+					sw.Write(JsonConvert.SerializeObject(properties, Formatting.Indented));
+				}
+			}
 		}
+
+		private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));
 	}
 }

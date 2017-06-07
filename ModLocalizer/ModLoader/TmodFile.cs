@@ -143,5 +143,12 @@ namespace ModLocalizer.ModLoader
 			var isWindows = windows.GetValueOrDefault(true);
 			return HasFile("All.dll") ? GetFile("All.dll") : isWindows ? GetFile("Windows.dll") : GetFile("Mono.dll");
 		}
+
+		public TmodProperties Properties => new TmodProperties
+		{
+			Name = Name,
+			ModLoaderVersion = _modLoaderVersion.ToString(),
+			ModVersion = Version.ToString()
+		};
 	}
 }

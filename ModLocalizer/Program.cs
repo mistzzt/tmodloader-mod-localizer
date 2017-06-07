@@ -13,7 +13,7 @@ namespace ModLocalizer
 			{
 				args = new[]
 				{
-					@"C:\Users\zitwa\Source\ThoriumMod.tmod"
+					@"..\..\..\..\..\ThoriumMod.tmod"
 				};
 			}
 
