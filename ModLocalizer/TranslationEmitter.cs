@@ -47,6 +47,22 @@ namespace ModLocalizer
 			});
 		}
 
+		public void Emit(MethodDef method, Local local, string content)
+		{
+			if (method == null) throw new ArgumentNullException(nameof(method));
+			if (local == null) throw new ArgumentNullException(nameof(local));
+			if (method.Module != Module) throw new ArgumentOutOfRangeException(nameof(method));
+
+			var instructions = method.Body.Instructions;
+			instructions.Insert(instructions.Count - 1, new[]
+			{
+				OpCodes.Ldloc_S.ToInstruction(local),
+				OpCodes.Ldsfld.ToInstruction(_gameCultureField),
+				OpCodes.Ldstr.ToInstruction(content),
+				OpCodes.Callvirt.ToInstruction(_addTranslation)
+			});
+		}
+
 		private readonly AssemblyRefUser _terraria = new AssemblyRefUser("Terraria", new Version(1, 3, 5, 1));
 		private readonly TypeRefUser _modTranslation;
 		private readonly MemberRefUser _addTranslation, _gameCultureField;

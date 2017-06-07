@@ -32,15 +32,16 @@ namespace ModLocalizer
 			Directory.CreateDirectory(GetPath("NPCs"));
 			Directory.CreateDirectory(GetPath("Buffs"));
 			Directory.CreateDirectory(GetPath("Miscs"));
+			Directory.CreateDirectory(GetPath("Tiles"));
 
 			LoadAssembly();
-
 			DumpBuildProperties();
 			DumpTmodProperties();
 			DumpItems();
 			DumpNpcs();
 			DumpBuffs();
 			DumpMiscs();
+			DumpMapEntries();
 		}
 
 		private void LoadAssembly()
@@ -174,7 +175,7 @@ namespace ModLocalizer
 				items.Add(item);
 			}
 
-			WriteFiles(items.ConvertAll(x => (ITranslation)x), "Items");
+			WriteFiles(items, "Items");
 		}
 
 		private void DumpNpcs()
@@ -270,7 +271,7 @@ namespace ModLocalizer
 				npcs.Add(npc);
 			}
 
-			WriteFiles(npcs.ConvertAll(x => (ITranslation)x), "NPCs");
+			WriteFiles(npcs, "NPCs");
 		}
 
 		private void DumpBuffs()
@@ -321,7 +322,7 @@ namespace ModLocalizer
 				buffs.Add(buff);
 			}
 
-			WriteFiles(buffs.ConvertAll(i => (ITranslation)i), "Buffs");
+			WriteFiles(buffs, "Buffs");
 		}
 
 		private void DumpMiscs()
@@ -385,12 +386,52 @@ namespace ModLocalizer
 				}
 			}
 
-			WriteFiles(miscs.ConvertAll(i => (ITranslation)i), "Miscs");
+			WriteFiles(miscs, "Miscs");
+		}
+
+		private void DumpMapEntries()
+		{
+			var entries = new List<MapEntryTranslation>();
+
+			foreach (var type in _module.Types.Where(t => t.BaseType?.Name.ToString().Equals("ModTile", StringComparison.Ordinal) == true))
+			{
+				var entry = new MapEntryTranslation { TypeName = type.Name, Namespace = type.Namespace };
+
+				var method = type.FindMethod("SetDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
+
+				if (method?.HasBody != true)
+					continue;
+
+				var inst = method.Body.Instructions;
+
+				for (var index = 0; index < inst.Count; index++)
+				{
+					var ins = inst[index];
+
+					if (ins.OpCode != OpCodes.Ldstr)
+						continue;
+
+					var value = ins.Operand as string;
+
+					ins = inst[++index];
+
+					if (ins.Operand is IMethodDefOrRef m &&
+					    string.Equals(m.Name.ToString(), "SetDefault") &&
+					    string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
+					{
+						entry.Name = value;
+					}
+				}
+
+				entries.Add(entry);
+			}
+
+			WriteFiles(entries, "Tiles");
 		}
 
 		private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));
 
-		public void WriteFiles(IList<ITranslation> translations, string category)
+		public void WriteFiles<T>(IList<T> translations, string category) where T : ITranslation
 		{
 			foreach (var ns in translations.Select(i => i.Namespace).Distinct())
 			{

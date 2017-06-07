@@ -43,6 +43,7 @@ namespace ModLocalizer
 			ApplyNpcs();
 			ApplyBuffs();
 			ApplyMiscs();
+			ApplyMapEntries();
 
 			Save();
 		}
@@ -322,6 +323,54 @@ namespace ModLocalizer
 								ins.Operand = list[currentIndex++];
 							}
 						}
+					}
+				}
+			}
+		}
+
+		private void ApplyMapEntries()
+		{
+			var texts = LoadTranslations<MapEntryTranslation>("Tiles");
+
+			foreach (var text in texts)
+			{
+				ApplyMapEntriesInternal(text, _emitter);
+				ApplyMapEntriesInternal(text, _monoEmitter);
+			}
+
+			void ApplyMapEntriesInternal(MapEntryTranslation translation, TranslationEmitter emitter)
+			{
+				if (translation == null || emitter == null)
+					return;
+
+				var fullName = string.Concat(translation.Namespace, ".", translation.TypeName);
+				var type = emitter.Module.Find(fullName, true);
+
+				var method = type.FindMethod("SetDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
+				if (method?.HasBody != true)
+					return;
+
+				var inst = method.Body.Instructions;
+
+				for (var index = 0; index < inst.Count; index++)
+				{
+					var ins = inst[index];
+
+					if (ins.OpCode != OpCodes.Call)
+						continue;
+
+					if (ins.Operand is IMethodDefOrRef m &&
+					    string.Equals(m.Name.ToString(), "CreateMapEntryName") &&
+					    string.Equals(m.DeclaringType.Name, "ModTile", StringComparison.Ordinal))
+					{
+						ins = inst[++index];
+						if (!ins.IsStloc())
+						{
+							continue;
+						}
+
+						var local = ins.GetLocal(method.Body.Variables);
+						emitter.Emit(method, local, translation.Name);
 					}
 				}
 			}
