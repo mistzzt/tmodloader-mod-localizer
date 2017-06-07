@@ -38,7 +38,7 @@ You have seven languages for chosing:
 * French
 * Spanish
 * Russian
-* Chinese (default)
+* Chinese (This is default language if you don't specify one using `--langage`)
 * Portuguese
 * Polish
 
@@ -55,8 +55,8 @@ You might get something like this when translating mod:
 
 ```json
   {
-    "TypeName": "ExampleBreastplate", // DO NOT EDIT THIS
-    "Namespace": "ExampleMod.Items.Armor", // DO NOT EDIT THIS
+    "TypeName": "DO-NOT-EDIT-ME", // DO NOT EDIT THIS
+    "Namespace": "DO-NOT-EDIT-ME", // DO NOT EDIT THIS
     "Name": "Example Breastplate",
     "ToolTip": "This is a modded body armor.\nImmunity to 'On Fire!'\n+20 max mana and +1 max minions",
     "ModifyTooltips": []
