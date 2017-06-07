@@ -47,6 +47,8 @@ They're case-sensitive: you must enter them as what exactly they are here.
 If I chose **Chinese**, then my translations will only show when I use Chinese language in *Terraria Settings*.
 So you must carefully choose your language to let your translations work.
 
+After executing, program will generate a file ends with `_patched.tmod` in your current directory.
+
 ### For further usage, enter `ModLocalizer --help`.
 
 ## How to translate mod content
@@ -64,6 +66,8 @@ You might get something like this when translating mod:
 ```
 
 You can modify anything except `TypeName`, `Method` and `Namespace`.
+
+I recommend using [Visual Studio Code][vscode] as your editor.
 
 ### File/Directory inside mode content folder
 
