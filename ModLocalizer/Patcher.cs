@@ -103,15 +103,17 @@ namespace ModLocalizer
 
 				var fullName = string.Concat(translation.Namespace, ".", translation.TypeName);
 				var type = emitter.Module.Find(fullName, true);
-
 				if (type == null)
 					return;
 
 				var method = type.FindMethod("SetStaticDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
-				if (!string.IsNullOrEmpty(translation.Name))
-					emitter.Emit(method, "DisplayName", translation.Name);
-				if (!string.IsNullOrEmpty(translation.ToolTip))
-					emitter.Emit(method, "Tooltip", translation.ToolTip);
+				if (method?.HasBody == true)
+				{
+					if (!string.IsNullOrEmpty(translation.Name))
+						emitter.Emit(method, "DisplayName", translation.Name);
+					if (!string.IsNullOrEmpty(translation.ToolTip))
+						emitter.Emit(method, "Tooltip", translation.ToolTip);
+				}
 
 				method = type.FindMethod("ModifyTooltips");
 				if (method?.HasBody == true)
@@ -179,13 +181,15 @@ namespace ModLocalizer
 
 				var fullName = string.Concat(translation.Namespace, ".", translation.TypeName);
 				var type = emitter.Module.Find(fullName, true);
-
 				if (type == null)
 					return;
 
 				var method = type.FindMethod("SetStaticDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
-				if (!string.IsNullOrEmpty(translation.Name))
-					emitter.Emit(method, "DisplayName", translation.Name);
+				if (method?.HasBody == true)
+				{
+					if (!string.IsNullOrEmpty(translation.Name))
+						emitter.Emit(method, "DisplayName", translation.Name);
+				}		
 
 				method = type.FindMethod("GetChat");
 				if (method?.HasBody == true)
@@ -252,15 +256,17 @@ namespace ModLocalizer
 
 				var fullName = string.Concat(translation.Namespace, ".", translation.TypeName);
 				var type = emitter.Module.Find(fullName, true);
-
 				if (type == null)
 					return;
 
 				var method = type.FindMethod("SetDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
-				if (!string.IsNullOrEmpty(translation.Name))
-					emitter.Emit(method, "DisplayName", translation.Name);
-				if (!string.IsNullOrEmpty(translation.Tip))
-					emitter.Emit(method, "Description", translation.Tip);
+				if (method?.HasBody == true)
+				{
+					if (!string.IsNullOrEmpty(translation.Name))
+						emitter.Emit(method, "DisplayName", translation.Name);
+					if (!string.IsNullOrEmpty(translation.Tip))
+						emitter.Emit(method, "Description", translation.Tip);
+				}
 			}
 		}
 
