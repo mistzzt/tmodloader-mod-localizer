@@ -49,12 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dumper.cs" />
+    <Compile Include="Extensions\InstructionExtensions.cs" />
     <Compile Include="Framework\BuffTranslation.cs" />
     <Compile Include="Framework\ItemTranslation.cs" />
     <Compile Include="Framework\ITranslation.cs" />
     <Compile Include="Framework\MapEntryTranslation.cs" />
     <Compile Include="Framework\MiscTranslation.cs" />
     <Compile Include="Framework\NpcTranslation.cs" />
+    <Compile Include="TranslationEmitter.cs" />
     <Compile Include="ModLoader\BuildProperties.cs" />
     <Compile Include="ModLoader\TmodProperties.cs" />
     <Compile Include="Patcher.cs" />

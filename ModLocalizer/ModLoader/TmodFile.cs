@@ -153,6 +153,15 @@ namespace ModLocalizer.ModLoader
 			return data;
 		}
 
+		public void WriteMainAssembly(byte[] data, bool monoOnly)
+		{
+			var dataCopy = new byte[data.Length];
+			data.CopyTo(dataCopy, 0);
+
+			var fileName = monoOnly ? "Mono.dll" : (HasFile("All.dll") ? "All.dll" : "Windows.dll");
+			_files[fileName] = dataCopy;
+		}
+
 		public TmodProperties Properties
 		{
 			get => new TmodProperties
