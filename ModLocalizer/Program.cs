@@ -40,9 +40,10 @@ namespace ModLocalizer
 			var pathArgument = app.Argument("Path", "The location of mod to be patched OR dumped");
 			var modeOption = app.Option("-m | --mode", "Set program mode: DUMP mod content or PATCH content to mod", CommandOptionType.SingleValue);
 			var folderOption = app.Option("-f | --folder", "Set the folder of localized content for PATCHING mod", CommandOptionType.SingleValue);
+			var languageOption = app.Option("-l | --language", "Default: Chinese. Wrong language inputted may cause mod loading FAILURE!!", CommandOptionType.SingleValue);
 
 			var dump = true;
-			string folder = null, path = null;
+			string folder = null, path = null, language = "Chinese";
 
 			app.OnExecute(() =>
 			{
@@ -54,6 +55,11 @@ namespace ModLocalizer
 				if (folderOption.HasValue())
 				{
 					folder = folderOption.Value();
+				}
+
+				if (languageOption.HasValue())
+				{
+					language = languageOption.Value();
 				}
 
 				path = pathArgument.Value;
@@ -75,16 +81,16 @@ namespace ModLocalizer
 
 			if (!string.IsNullOrWhiteSpace(path))
 			{
-				ProcessInput(path, folder, dump);
+				ProcessInput(path, folder, dump, language);
 			}
 		}
 
-		private static void ProcessInput(string modPath, string contentFolderPath, bool dump = true)
+		private static void ProcessInput(string modPath, string contentFolderPath, bool dump = true, string language = "Chinese")
 		{
 			if (string.IsNullOrWhiteSpace(modPath))
 				throw new ArgumentException("Value cannot be null or whitespace.", nameof(modPath));
 
-			if(!dump && string.IsNullOrWhiteSpace(contentFolderPath))
+			if (!dump && string.IsNullOrWhiteSpace(contentFolderPath))
 				throw new ArgumentException("Value cannot be null or whitespace.", nameof(contentFolderPath));
 
 			if (!File.Exists(modPath))
@@ -102,7 +108,7 @@ namespace ModLocalizer
 			}
 			else
 			{
-				new Patcher(modFile, contentFolderPath).Run();
+				new Patcher(modFile, contentFolderPath, language).Run();
 			}
 		}
 	}

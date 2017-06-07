@@ -14,6 +14,7 @@ namespace ModLocalizer
 	{
 		private readonly TmodFile _mod;
 		private readonly string _contentPath;
+		private readonly string _language;
 		private readonly byte[] _assembly;
 		private readonly byte[] _monoAssembly;
 
@@ -23,10 +24,11 @@ namespace ModLocalizer
 		private TranslationEmitter _emitter;
 		private TranslationEmitter _monoEmitter;
 
-		public Patcher(TmodFile mod, string contentPath)
+		public Patcher(TmodFile mod, string contentPath, string language)
 		{
 			_mod = mod;
 			_contentPath = contentPath;
+			_language = language;
 
 			_assembly = _mod.GetMainAssembly(false);
 			_monoAssembly = _mod.GetMainAssembly(true);
@@ -51,12 +53,12 @@ namespace ModLocalizer
 		private void LoadAssemblies()
 		{
 			_module = AssemblyDef.Load(_assembly).Modules.Single();
-			_emitter = new TranslationEmitter(_module, "Chinese");
+			_emitter = new TranslationEmitter(_module, _language);
 
 			if (_monoAssembly != null)
 			{
 				_monoModule = AssemblyDef.Load(_monoAssembly).Modules.Single();
-				_monoEmitter = new TranslationEmitter(_monoModule, "Chinese");
+				_monoEmitter = new TranslationEmitter(_monoModule, _language);
 			}
 		}
 
@@ -106,9 +108,9 @@ namespace ModLocalizer
 					return;
 
 				var method = type.FindMethod("SetStaticDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
-				if(!string.IsNullOrEmpty(translation.Name))
+				if (!string.IsNullOrEmpty(translation.Name))
 					emitter.Emit(method, "DisplayName", translation.Name);
-				if(!string.IsNullOrEmpty(translation.ToolTip))
+				if (!string.IsNullOrEmpty(translation.ToolTip))
 					emitter.Emit(method, "Tooltip", translation.ToolTip);
 
 				method = type.FindMethod("ModifyTooltips");
@@ -202,7 +204,7 @@ namespace ModLocalizer
 						ins = inst[++index];
 
 						if ((ins.OpCode.Equals(OpCodes.Call) || ins.OpCode.Equals(OpCodes.Callvirt))
-						    && ins.Operand is IMethodDefOrRef m)
+							&& ins.Operand is IMethodDefOrRef m)
 							if (!m.Name.ToString().Equals("Concat") || m.MethodSig.Params.Count == 1)
 								continue;
 
@@ -293,7 +295,7 @@ namespace ModLocalizer
 					var ins = inst[index];
 
 					if (!ins.OpCode.Equals(OpCodes.Call) || !(ins.Operand is IMethodDefOrRef m) ||
-					    !m.Name.ToString().Equals("NewText", StringComparison.Ordinal))
+						!m.Name.ToString().Equals("NewText", StringComparison.Ordinal))
 						continue;
 
 					if ((ins = inst[index - 5]).OpCode.Equals(OpCodes.Ldstr))
@@ -301,8 +303,8 @@ namespace ModLocalizer
 						ins.Operand = translation.Contents[listIndex++];
 					}
 					else if (ins.OpCode.Equals(OpCodes.Call) &&
-					         ins.Operand is IMethodDefOrRef n &&
-					         n.Name.ToString().Equals("Concat", StringComparison.Ordinal))
+							 ins.Operand is IMethodDefOrRef n &&
+							 n.Name.ToString().Equals("Concat", StringComparison.Ordinal))
 					{
 						var index2 = index;
 						var count = 0;
@@ -360,8 +362,8 @@ namespace ModLocalizer
 						continue;
 
 					if (ins.Operand is IMethodDefOrRef m &&
-					    string.Equals(m.Name.ToString(), "CreateMapEntryName") &&
-					    string.Equals(m.DeclaringType.Name, "ModTile", StringComparison.Ordinal))
+						string.Equals(m.Name.ToString(), "CreateMapEntryName") &&
+						string.Equals(m.DeclaringType.Name, "ModTile", StringComparison.Ordinal))
 					{
 						ins = inst[++index];
 						if (!ins.IsStloc())
