@@ -38,7 +38,7 @@ You have seven languages for chosing:
 * French
 * Spanish
 * Russian
-* Chinese (This is default language if you don't specify one using `--langage`)
+* Chinese (This is default language if you don't specify one using `--language`)
 * Portuguese
 * Polish
 
