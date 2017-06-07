@@ -27,6 +27,15 @@ namespace ModLocalizer
 
 		public void Run()
 		{
+			try
+			{
+				Directory.Delete(_mod.Name, true);
+			}
+			catch
+			{
+				// ignored
+			}
+
 			Directory.CreateDirectory(_mod.Name);
 			Directory.CreateDirectory(GetPath("Items"));
 			Directory.CreateDirectory(GetPath("NPCs"));
