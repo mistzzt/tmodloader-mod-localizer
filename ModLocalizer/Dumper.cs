@@ -31,6 +31,7 @@ namespace ModLocalizer
 			Directory.CreateDirectory(GetPath("Items"));
 			Directory.CreateDirectory(GetPath("NPCs"));
 			Directory.CreateDirectory(GetPath("Buffs"));
+			Directory.CreateDirectory(GetPath("Miscs"));
 
 			LoadAssembly();
 
@@ -39,6 +40,7 @@ namespace ModLocalizer
 			DumpItems();
 			DumpNpcs();
 			DumpBuffs();
+			DumpMiscs();
 		}
 
 		private void LoadAssembly()
@@ -320,6 +322,70 @@ namespace ModLocalizer
 			}
 
 			WriteFiles(buffs.ConvertAll(i => (ITranslation)i), "Buffs");
+		}
+
+		private void DumpMiscs()
+		{
+			var miscs = new List<MiscTranslation>();
+
+			foreach (var type in _module.Types)
+			{
+				foreach (var method in type.Methods)
+				{
+					if (!method.HasBody)
+						continue;
+
+					var inst = method.Body.Instructions;
+
+					var misc = new MiscTranslation { TypeName = type.Name, Namespace = type.Namespace, Method = method.Name };
+					var write = false;
+
+					for (var index = 0; index < inst.Count; index++)
+					{
+						var ins = inst[index];
+
+						if (!ins.OpCode.Equals(OpCodes.Call) || !(ins.Operand is IMethodDefOrRef m) ||
+							!m.Name.ToString().Equals("NewText", StringComparison.Ordinal))
+							continue;
+
+						if ((ins = inst[index - 5]).OpCode.Equals(OpCodes.Ldstr))
+						{
+							misc.Contents.Add(ins.Operand as string);
+							write = true;
+						}
+						else if (ins.OpCode.Equals(OpCodes.Call) &&
+								 ins.Operand is IMethodDefOrRef n &&
+								 n.Name.ToString().Equals("Concat", StringComparison.Ordinal))
+						{
+							var index2 = index;
+							var count = 0;
+							var total = n.MethodSig.Params.Count;
+							var list = new List<string>();
+							while (--index2 > 0 && count < total)
+							{
+								ins = inst[index2];
+								if (ins.OpCode.Equals(OpCodes.Ldelem_Ref)) // for array
+								{
+									count++;
+								}
+								else if (ins.OpCode.Equals(OpCodes.Ldstr))
+								{
+									count++;
+									list.Add(ins.Operand as string);
+								}
+							}
+							list.Reverse();
+							misc.Contents.AddRange(list);
+							write = true;
+						}
+					}
+
+					if (write)
+						miscs.Add(misc);
+				}
+			}
+
+			WriteFiles(miscs.ConvertAll(i => (ITranslation)i), "Miscs");
 		}
 
 		private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));

@@ -52,6 +52,8 @@
     <Compile Include="Framework\BuffTranslation.cs" />
     <Compile Include="Framework\ItemTranslation.cs" />
     <Compile Include="Framework\ITranslation.cs" />
+    <Compile Include="Framework\MapEntryTranslation.cs" />
+    <Compile Include="Framework\MiscTranslation.cs" />
     <Compile Include="Framework\NpcTranslation.cs" />
     <Compile Include="ModLoader\BuildProperties.cs" />
     <Compile Include="ModLoader\TmodProperties.cs" />
