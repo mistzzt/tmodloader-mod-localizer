@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dumper.cs" />
+    <Compile Include="Framework\BuffTranslation.cs" />
     <Compile Include="Framework\ItemTranslation.cs" />
     <Compile Include="Framework\ITranslation.cs" />
     <Compile Include="Framework\NpcTranslation.cs" />

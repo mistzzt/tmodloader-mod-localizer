@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using ModLocalizer.Framework;
@@ -31,6 +30,7 @@ namespace ModLocalizer
 			Directory.CreateDirectory(_mod.Name);
 			Directory.CreateDirectory(GetPath("Items"));
 			Directory.CreateDirectory(GetPath("NPCs"));
+			Directory.CreateDirectory(GetPath("Buffs"));
 
 			LoadAssembly();
 
@@ -38,6 +38,7 @@ namespace ModLocalizer
 			DumpTmodProperties();
 			DumpItems();
 			DumpNpcs();
+			DumpBuffs();
 		}
 
 		private void LoadAssembly()
@@ -171,7 +172,7 @@ namespace ModLocalizer
 				items.Add(item);
 			}
 
-			WriteFiles(items.ConvertAll(x => (ITranslation) x), "Items");
+			WriteFiles(items.ConvertAll(x => (ITranslation)x), "Items");
 		}
 
 		private void DumpNpcs()
@@ -200,8 +201,8 @@ namespace ModLocalizer
 						ins = inst[++index];
 
 						if (ins.Operand is IMethodDefOrRef m &&
-						    string.Equals(m.Name.ToString(), "SetDefault") &&
-						    string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
+							string.Equals(m.Name.ToString(), "SetDefault") &&
+							string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
 						{
 							ins = inst[index - 2];
 
@@ -233,7 +234,7 @@ namespace ModLocalizer
 						ins = inst[++index];
 
 						if ((ins.OpCode.Equals(OpCodes.Call) || ins.OpCode.Equals(OpCodes.Callvirt))
-						    && ins.Operand is IMethodDefOrRef m)
+							&& ins.Operand is IMethodDefOrRef m)
 							if (!m.Name.ToString().Equals("Concat") || m.MethodSig.Params.Count == 1)
 								continue;
 
@@ -267,7 +268,58 @@ namespace ModLocalizer
 				npcs.Add(npc);
 			}
 
-			WriteFiles(npcs.ConvertAll(x => (ITranslation) x), "NPCs");
+			WriteFiles(npcs.ConvertAll(x => (ITranslation)x), "NPCs");
+		}
+
+		private void DumpBuffs()
+		{
+			var buffs = new List<BuffTranslation>();
+
+			foreach (var type in _module.Types.Where(t => t.BaseType?.Name.ToString().Equals("ModBuff", StringComparison.Ordinal) == true))
+			{
+				var buff = new BuffTranslation { TypeName = type.Name, Namespace = type.Namespace };
+
+				var method = type.FindMethod("SetDefaults", MethodSig.CreateInstance(_module.CorLibTypes.Void));
+
+				if (method?.HasBody != true)
+					continue;
+
+				var inst = method.Body.Instructions;
+
+				for (var index = 0; index < inst.Count; index++)
+				{
+					var ins = inst[index];
+
+					if (ins.OpCode != OpCodes.Ldstr)
+						continue;
+
+					var value = ins.Operand as string;
+
+					ins = inst[++index];
+
+					if (ins.Operand is IMethodDefOrRef m &&
+						string.Equals(m.Name.ToString(), "SetDefault") &&
+						string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
+					{
+						ins = inst[index - 2];
+
+						var propertyGetter = (IMethodDefOrRef)ins.Operand;
+						switch (propertyGetter.Name)
+						{
+							case "get_DisplayName":
+								buff.Name = value;
+								break;
+							case "get_Description":
+								buff.Tip = value;
+								break;
+						}
+					}
+				}
+
+				buffs.Add(buff);
+			}
+
+			WriteFiles(buffs.ConvertAll(i => (ITranslation)i), "Buffs");
 		}
 
 		private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));
