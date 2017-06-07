@@ -61,7 +61,7 @@ namespace ModLocalizer.ModLoader
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public int FileCount => _files.Count;
 
-		public void Save(bool overrideModLoaderVersion = false)
+		public void Save(string path = null, bool overrideModLoaderVersion = false)
 		{
 			using (var dataStream = new MemoryStream())
 			{
@@ -82,7 +82,7 @@ namespace ModLocalizer.ModLoader
 				var data = dataStream.ToArray();
 				_hash = SHA1.Create().ComputeHash(data);
 
-				using (var fileStream = File.Create(_path))
+				using (var fileStream = File.Create(path ?? _path))
 				using (var fileWriter = new BinaryWriter(fileStream))
 				{
 					fileWriter.Write(Encoding.ASCII.GetBytes("TMOD"));
@@ -153,11 +153,21 @@ namespace ModLocalizer.ModLoader
 			return data;
 		}
 
-		public TmodProperties Properties => new TmodProperties
+		public TmodProperties Properties
 		{
-			Name = Name,
-			ModLoaderVersion = _modLoaderVersion.ToString(),
-			ModVersion = Version.ToString()
-		};
+			get => new TmodProperties
+			{
+				Name = Name,
+				ModLoaderVersion = _modLoaderVersion.ToString(),
+				ModVersion = Version.ToString()
+			};
+
+			set
+			{
+				Name = value.Name ?? Name;
+				Version = Version.Parse(value.ModVersion);
+				_modLoaderVersion = Version.Parse(value.ModLoaderVersion);
+			}
+		}
 	}
 }
