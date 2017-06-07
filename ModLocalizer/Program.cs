@@ -13,8 +13,13 @@ namespace ModLocalizer
 			{
 				args = new[]
 				{
+#if DEBUG
 					@"..\..\..\..\..\ExampleMod.tmod"
+#else
+					"--help"
+#endif
 				};
+
 			}
 
 			var app = new CommandLineApplication(false)
@@ -59,12 +64,15 @@ namespace ModLocalizer
 					Console.WriteLine("Please specify the content folder for mod patching.");
 					Environment.Exit(1);
 				}
-				
+
 				return 0;
 			});
 			app.Execute(args);
 
-			ProcessInput(path, folder, dump);
+			if (!string.IsNullOrWhiteSpace(path))
+			{
+				ProcessInput(path, folder, dump);
+			}
 		}
 
 		private static void ProcessInput(string modPath, string contentFolderPath, bool dump = true)
