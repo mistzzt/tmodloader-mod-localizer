@@ -138,10 +138,19 @@ namespace ModLocalizer.ModLoader
 				throw new Exception("Missing All.dll or Windows.dll and Mono.dll");
 		}
 
-		public byte[] GetMainAssembly(bool? windows = null)
+		public byte[] GetMainAssembly(bool monoOnly)
 		{
-			var isWindows = windows.GetValueOrDefault(true);
-			return HasFile("All.dll") ? GetFile("All.dll") : isWindows ? GetFile("Windows.dll") : GetFile("Mono.dll");
+			byte[] data;
+			if (monoOnly)
+			{
+				data = GetFile("Mono.dll");
+			}
+			else
+			{
+				data = HasFile("All.dll") ? GetFile("All.dll") : GetFile("Windows.dll");
+			}
+
+			return data;
 		}
 
 		public TmodProperties Properties => new TmodProperties

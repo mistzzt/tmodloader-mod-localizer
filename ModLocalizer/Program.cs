@@ -13,7 +13,7 @@ namespace ModLocalizer
 			{
 				args = new[]
 				{
-					@"..\..\..\..\..\ThoriumMod.tmod"
+					@"..\..\..\..\..\ExampleMod.tmod"
 				};
 			}
 
