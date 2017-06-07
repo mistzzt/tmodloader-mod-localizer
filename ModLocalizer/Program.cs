@@ -37,9 +37,9 @@ namespace ModLocalizer
 			app.HelpOption("--help | -h");
 			app.VersionOption("-v | --version", version.ToString(2), version.ToString(3));
 
-			var pathArgument = app.Argument("Mod path", "mod path");
-			var modeOption = app.Option("-m | --mode", "program mode", CommandOptionType.SingleValue);
-			var folderOption = app.Option("-f | --folder", "mod localized content folder", CommandOptionType.SingleValue);
+			var pathArgument = app.Argument("Path", "The location of mod to be patched OR dumped");
+			var modeOption = app.Option("-m | --mode", "Set program mode: DUMP mod content or PATCH content to mod", CommandOptionType.SingleValue);
+			var folderOption = app.Option("-f | --folder", "Set the folder of localized content for PATCHING mod", CommandOptionType.SingleValue);
 
 			var dump = true;
 			string folder = null, path = null;
