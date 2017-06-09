@@ -120,6 +120,7 @@ namespace ModLocalizer
 				if (method?.HasBody == true)
 				{
 					var inst = method.Body.Instructions;
+					var listIndex = 0;
 
 					for (var index = 0; index < inst.Count; index++)
 					{
@@ -128,38 +129,42 @@ namespace ModLocalizer
 						if (ins.OpCode != OpCodes.Newobj || !(ins.Operand is MemberRef m) || !m.DeclaringType.Name.Equals("TooltipLine"))
 							continue;
 
-						if (index - 1 <= 0) continue;
-
 						ins = inst[index - 1];
 
-						if (index - 2 > 0 && ins.OpCode.Equals(OpCodes.Ldstr) && inst[index - 2].OpCode.Equals(OpCodes.Ldstr))
+						if (ins.OpCode.Equals(OpCodes.Ldstr) && inst[index - 2].OpCode.Equals(OpCodes.Ldstr))
 						{
-							inst[index - 2].Operand = translation.ModifyTooltips[0];
-							inst[index - 1].Operand = translation.ModifyTooltips[1];
+							inst[index - 2].Operand = translation.ModifyTooltips[listIndex++];
+							inst[index - 1].Operand = translation.ModifyTooltips[listIndex++];
 						}
-						else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat"))
+						else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat")) // for thorium mod
 						{
-							var index2 = index;
-							var count = 0;
-							var listIndex = 0;
+							int index2 = index, reversedListIndex = 0, argumentCount = 0;
 							var total = n.MethodSig.Params.Count + 1;
-							var list = translation.ModifyTooltips.AsEnumerable().Reverse().ToList();
-							while (--index2 > 0 && count < total)
+
+							var reversedList = translation.ModifyTooltips.GetRange(index, translation.ModifyTooltips.Count - index);
+							reversedList.Reverse();
+
+							var ldstrList = new List<Instruction>();
+							while (--index2 > 0 && argumentCount < total)
 							{
 								ins = inst[index2];
 								if (ins.OpCode.Equals(OpCodes.Ldelem_Ref))
 								{
-									count++;
+									argumentCount++;
 								}
 								else if (ins.OpCode.Equals(OpCodes.Ldstr))
 								{
-									ins.Operand = list[listIndex++];
-									count++;
+									argumentCount++;
+									ldstrList.Add(ins);
 								}
 							}
+
+							foreach (var ldstrInstruction in ldstrList)
+							{
+								ldstrInstruction.Operand = reversedList[reversedListIndex++];
+								index++;
+							}
 						}
-
-
 					}
 				}
 

@@ -147,11 +147,9 @@ namespace ModLocalizer
 						if (ins.OpCode != OpCodes.Newobj || !(ins.Operand is MemberRef m) || !m.DeclaringType.Name.Equals("TooltipLine"))
 							continue;
 
-						if (index - 1 <= 0) continue;
-
 						ins = inst[index - 1];
 
-						if (index - 2 > 0 && ins.OpCode.Equals(OpCodes.Ldstr) && inst[index - 2].OpCode.Equals(OpCodes.Ldstr))
+						if (ins.OpCode.Equals(OpCodes.Ldstr) && inst[index - 2].OpCode.Equals(OpCodes.Ldstr))
 						{
 							item.ModifyTooltips.Add(inst[index - 2].Operand as string);
 							item.ModifyTooltips.Add(inst[index - 1].Operand as string);
@@ -178,8 +176,6 @@ namespace ModLocalizer
 							list.Reverse();
 							item.ModifyTooltips.AddRange(list);
 						}
-
-
 					}
 				}
 
