@@ -2,7 +2,7 @@
 
 namespace ModLocalizer.Framework
 {
-	public sealed class MiscTranslation : ITranslation
+	public sealed class NewTextTranslation : ITranslation
 	{
 		public string TypeName { get; set; } = string.Empty;
 

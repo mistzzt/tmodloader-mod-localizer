@@ -46,6 +46,7 @@ namespace ModLocalizer
 			ApplyBuffs();
 			ApplyMiscs();
 			ApplyMapEntries();
+			ApplyCustomTranslations();
 
 			Save();
 		}
@@ -298,7 +299,7 @@ namespace ModLocalizer
 
 		private void ApplyMiscs()
 		{
-			var texts = LoadTranslations<MiscTranslation>("Miscs");
+			var texts = LoadTranslations<NewTextTranslation>("Miscs");
 
 			foreach (var text in texts)
 			{
@@ -306,7 +307,7 @@ namespace ModLocalizer
 				ApplyMiscsInternal(text, _monoEmitter);
 			}
 
-			void ApplyMiscsInternal(MiscTranslation translation, TranslationEmitter emitter)
+			void ApplyMiscsInternal(NewTextTranslation translation, TranslationEmitter emitter)
 			{
 				if (translation == null || emitter == null)
 					return;
@@ -405,6 +406,50 @@ namespace ModLocalizer
 
 						var local = ins.GetLocal(method.Body.Variables);
 						emitter.Emit(method, local, translation.Name);
+					}
+				}
+			}
+		}
+
+		private void ApplyCustomTranslations()
+		{
+			var texts = LoadTranslations<CustomTranslation>("Customs");
+
+			ApplyCustomTranslationsInternal(texts, _emitter);
+			ApplyCustomTranslationsInternal(texts, _monoEmitter);
+
+			void ApplyCustomTranslationsInternal(IList<CustomTranslation> translations, TranslationEmitter emitter)
+			{
+				foreach (var type in emitter.Module.Types)
+				{
+					foreach (var method in type.Methods)
+					{
+						if (!method.HasBody)
+							continue;
+
+						var inst = method.Body.Instructions;
+						for (var index = 0; index < inst.Count; index++)
+						{
+							var ins = inst[index];
+
+							if (!ins.OpCode.Equals(OpCodes.Call) ||
+							    !(ins.Operand is IMethod m) ||
+							    !string.Equals(m.Name.ToString(), "CreateTranslation"))
+								continue;
+
+							if (!(ins = inst[++index]).IsStloc())
+								continue;
+
+							var key = inst[index - 2].Operand as string;
+							var content = translations.FirstOrDefault(x => string.Equals(key, x.Key, StringComparison.Ordinal))?.Value;
+
+							if (string.IsNullOrEmpty(content))
+								continue;
+
+							var local = ins.GetLocal(method.Body.Variables);
+
+							emitter.Emit(method, local, content, index + 1);
+						}
 					}
 				}
 			}

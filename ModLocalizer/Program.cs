@@ -14,7 +14,7 @@ namespace ModLocalizer
 				args = new[]
 				{
 #if DEBUG
-					@"..\..\..\..\..\ExampleMod.tmod",
+					"ExampleMod.tmod",
 					"-m",
 					"patch",
 					"-f",

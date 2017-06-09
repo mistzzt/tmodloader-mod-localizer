@@ -42,6 +42,7 @@ namespace ModLocalizer
 			Directory.CreateDirectory(GetPath("Buffs"));
 			Directory.CreateDirectory(GetPath("Miscs"));
 			Directory.CreateDirectory(GetPath("Tiles"));
+			Directory.CreateDirectory(GetPath("Customs"));
 
 			LoadAssembly();
 			DumpBuildProperties();
@@ -51,6 +52,7 @@ namespace ModLocalizer
 			DumpBuffs();
 			DumpMiscs();
 			DumpMapEntries();
+			DumpCustomTranslations();
 		}
 
 		private void LoadAssembly()
@@ -362,7 +364,7 @@ namespace ModLocalizer
 
 		private void DumpMiscs()
 		{
-			var miscs = new List<MiscTranslation>();
+			var miscs = new List<NewTextTranslation>();
 
 			foreach (var type in _module.Types)
 			{
@@ -373,7 +375,7 @@ namespace ModLocalizer
 
 					var inst = method.Body.Instructions;
 
-					var misc = new MiscTranslation { TypeName = type.Name, Namespace = type.Namespace, Method = method.Name };
+					var misc = new NewTextTranslation { TypeName = type.Name, Namespace = type.Namespace, Method = method.Name };
 					var write = false;
 
 					for (var index = 0; index < inst.Count; index++)
@@ -462,6 +464,52 @@ namespace ModLocalizer
 			}
 
 			WriteFiles(entries, "Tiles");
+		}
+
+		private void DumpCustomTranslations()
+		{
+			var list = new List<CustomTranslation>();
+
+			foreach (var type in _module.Types)
+			{
+				foreach (var method in type.Methods)
+				{
+					if (!method.HasBody)
+						continue;
+
+					var inst = method.Body.Instructions;
+					for (var index = 0; index < inst.Count; index++)
+					{
+						var ins = inst[index];
+
+						if (!ins.OpCode.Equals(OpCodes.Call) ||
+							!(ins.Operand is IMethod m) ||
+						    !string.Equals(m.Name.ToString(), "CreateTranslation"))
+							continue;
+
+						if (!(ins = inst[++index]).IsStloc())
+							continue;
+
+						var custom = new CustomTranslation
+						{
+							Key = inst[index - 2].Operand as string,
+							Namespace = type.Namespace
+						};
+
+						var local = ins.GetLocal(method.Body.Variables);
+
+						while (index < inst.Count - 1 && !(ins = inst[++index]).IsLdloc() || ins.GetLocal(method.Body.Variables) != local) { }
+
+						if(!(ins = inst[++index]).OpCode.Equals(OpCodes.Ldstr))
+							continue;
+
+						custom.Value = ins.Operand as string;
+						list.Add(custom);
+					}
+				}
+			}
+
+			WriteFiles(list, "Customs");
 		}
 
 		private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));
