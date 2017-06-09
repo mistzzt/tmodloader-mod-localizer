@@ -161,6 +161,32 @@ namespace ModLocalizer
 
 					}
 				}
+
+				method = type.FindMethod("UpdateArmorSet");
+				if (method?.HasBody == true)
+				{
+					var inst = method.Body.Instructions;
+
+					for (var index = 0; index < inst.Count; index++)
+					{
+						var ins = inst[index];
+
+						if (ins.OpCode != OpCodes.Ldstr)
+							continue;
+
+						if ((ins = inst[++index]).OpCode == OpCodes.Stfld && ins.Operand is MemberRef m)
+						{
+							switch (m.Name)
+							{
+								case "setBonus":
+									inst[index - 1].Operand = translation.SetBonus;
+									break;
+							}
+						}
+
+
+					}
+				}
 			}
 		}
 
@@ -189,7 +215,7 @@ namespace ModLocalizer
 				{
 					if (!string.IsNullOrEmpty(translation.Name))
 						emitter.Emit(method, "DisplayName", translation.Name);
-				}		
+				}
 
 				method = type.FindMethod("GetChat");
 				if (method?.HasBody == true)

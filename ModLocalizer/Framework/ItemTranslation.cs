@@ -12,6 +12,8 @@ namespace ModLocalizer.Framework
 
 		public string ToolTip { get; set; } = string.Empty;
 
+		public string SetBonus { get; set; } = string.Empty;
+
 		public List<string> ModifyTooltips { get; set; } = new List<string>();
 	}
 }

@@ -181,6 +181,32 @@ namespace ModLocalizer
 					}
 				}
 
+				method = type.FindMethod("UpdateArmorSet");
+				if (method?.HasBody == true)
+				{
+					var inst = method.Body.Instructions;
+
+					for (var index = 0; index < inst.Count; index++)
+					{
+						var ins = inst[index];
+
+						if (ins.OpCode != OpCodes.Ldstr)
+							continue;
+
+						var value = ins.Operand as string;
+
+						if ((ins = inst[++index]).OpCode == OpCodes.Stfld && ins.Operand is MemberRef m)
+						{
+							switch (m.Name)
+							{
+								case "setBonus":
+									item.SetBonus = value;
+									break;
+							}
+						}
+					}
+				}
+
 				items.Add(item);
 			}
 
@@ -425,8 +451,8 @@ namespace ModLocalizer
 					ins = inst[++index];
 
 					if (ins.Operand is IMethodDefOrRef m &&
-					    string.Equals(m.Name.ToString(), "SetDefault") &&
-					    string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
+						string.Equals(m.Name.ToString(), "SetDefault") &&
+						string.Equals(m.DeclaringType.Name, "ModTranslation", StringComparison.Ordinal))
 					{
 						entry.Name = value;
 					}
