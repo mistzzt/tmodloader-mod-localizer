@@ -54,12 +54,12 @@ namespace ModLocalizer
 		private void LoadAssemblies()
 		{
 			_module = AssemblyDef.Load(_assembly).Modules.Single();
-			_emitter = new TranslationEmitter(_module, _language);
+			_emitter = new TranslationEmitter(_module, _language, _mod.Name);
 
 			if (_monoAssembly != null)
 			{
 				_monoModule = AssemblyDef.Load(_monoAssembly).Modules.Single();
-				_monoEmitter = new TranslationEmitter(_monoModule, _language);
+				_monoEmitter = new TranslationEmitter(_monoModule, _language, _mod.Name);
 			}
 		}
 
@@ -133,8 +133,10 @@ namespace ModLocalizer
 
 						if (ins.OpCode.Equals(OpCodes.Ldstr) && inst[index - 2].OpCode.Equals(OpCodes.Ldstr))
 						{
-							inst[index - 2].Operand = translation.ModifyTooltips[listIndex++];
-							inst[index - 1].Operand = translation.ModifyTooltips[listIndex++];
+							var cache = inst[index - 1];
+
+							emitter.Emit(method, inst[index - 2], translation.ModifyTooltips[listIndex++]);
+							emitter.Emit(method, cache, translation.ModifyTooltips[listIndex++]);
 						}
 						else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat")) // for thorium mod
 						{
@@ -185,7 +187,7 @@ namespace ModLocalizer
 							switch (m.Name)
 							{
 								case "setBonus":
-									inst[index - 1].Operand = translation.SetBonus;
+									emitter.Emit(method, inst[index - 1], translation.SetBonus);
 									break;
 							}
 						}
@@ -237,14 +239,7 @@ namespace ModLocalizer
 						if (ins.OpCode != OpCodes.Ldstr)
 							continue;
 
-						ins = inst[++index];
-
-						if ((ins.OpCode.Equals(OpCodes.Call) || ins.OpCode.Equals(OpCodes.Callvirt))
-							&& ins.Operand is IMethodDefOrRef m)
-							if (!m.Name.ToString().Equals("Concat") || m.MethodSig.Params.Count == 1)
-								continue;
-
-						inst[index - 1].Operand = translation.ChatTexts[listindex++];
+						emitter.Emit(method, ins, translation.ChatTexts[listindex++]);
 					}
 				}
 
@@ -263,9 +258,9 @@ namespace ModLocalizer
 						ins = inst[index - 1];
 
 						if (ins.OpCode.Equals(OpCodes.Ldarg_1))
-							inst[index].Operand = translation.ShopButton1;
+							emitter.Emit(method, inst[index], translation.ShopButton1);
 						else if (ins.OpCode.Equals(OpCodes.Ldarg_2))
-							inst[index].Operand = translation.ShopButton2;
+							emitter.Emit(method, inst[index], translation.ShopButton2);
 					}
 				}
 			}
@@ -338,31 +333,7 @@ namespace ModLocalizer
 
 					if ((ins = inst[index - 5]).OpCode.Equals(OpCodes.Ldstr))
 					{
-						ins.Operand = translation.Contents[listIndex++];
-					}
-					else if (ins.OpCode.Equals(OpCodes.Call) &&
-							 ins.Operand is IMethodDefOrRef n &&
-							 n.Name.ToString().Equals("Concat", StringComparison.Ordinal))
-					{
-						var index2 = index;
-						var count = 0;
-						var total = n.MethodSig.Params.Count;
-						var list = translation.Contents.GetRange(listIndex, translation.Contents.Count - listIndex).AsEnumerable().Reverse().ToList();
-						var currentIndex = 0;
-						while (--index2 > 0 && count < total)
-						{
-							ins = inst[index2];
-							if (ins.OpCode.Equals(OpCodes.Ldelem_Ref)) // for array
-							{
-								count++;
-							}
-							else if (ins.OpCode.Equals(OpCodes.Ldstr))
-							{
-								count++;
-								listIndex++;
-								ins.Operand = list[currentIndex++];
-							}
-						}
+						emitter.Emit(method, ins, translation.Contents[listIndex++]);
 					}
 				}
 			}

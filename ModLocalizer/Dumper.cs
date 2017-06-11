@@ -267,13 +267,6 @@ namespace ModLocalizer
 
 						var value = ins.Operand as string;
 
-						ins = inst[++index];
-
-						if ((ins.OpCode.Equals(OpCodes.Call) || ins.OpCode.Equals(OpCodes.Callvirt))
-							&& ins.Operand is IMethodDefOrRef m)
-							if (!m.Name.ToString().Equals("Concat") || m.MethodSig.Params.Count == 1)
-								continue;
-
 						npc.ChatTexts.Add(value);
 					}
 				}
@@ -385,31 +378,6 @@ namespace ModLocalizer
 						if ((ins = inst[index - 5]).OpCode.Equals(OpCodes.Ldstr))
 						{
 							misc.Contents.Add(ins.Operand as string);
-							write = true;
-						}
-						else if (ins.OpCode.Equals(OpCodes.Call) &&
-								 ins.Operand is IMethodDefOrRef n &&
-								 n.Name.ToString().Equals("Concat", StringComparison.Ordinal))
-						{
-							var index2 = index;
-							var count = 0;
-							var total = n.MethodSig.Params.Count;
-							var list = new List<string>();
-							while (--index2 > 0 && count < total)
-							{
-								ins = inst[index2];
-								if (ins.OpCode.Equals(OpCodes.Ldelem_Ref)) // for array
-								{
-									count++;
-								}
-								else if (ins.OpCode.Equals(OpCodes.Ldstr))
-								{
-									count++;
-									list.Add(ins.Operand as string);
-								}
-							}
-							list.Reverse();
-							misc.Contents.AddRange(list);
 							write = true;
 						}
 					}
