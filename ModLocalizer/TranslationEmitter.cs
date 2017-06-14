@@ -21,13 +21,14 @@ namespace ModLocalizer
 
 			var importer = new Importer(Module);
 
-			_modTranslationType = new TypeRefUser(Module, "Terraria.ModLoader", "ModTranslation", _terraria);
+			var terraria = module.GetAssemblyRef("Terraria") ?? new AssemblyRefUser("Terraria", new Version(1, 3, 5, 1));
+			_modTranslationType = new TypeRefUser(Module, "Terraria.ModLoader", "ModTranslation", terraria);
 
 			_modTranslationSetDefaultMethod = new MemberRefUser(Module, "SetDefault",
 				MethodSig.CreateInstance(Module.CorLibTypes.Void, Module.CorLibTypes.String),
 				_modTranslationType);
 
-			var gameCultureType = new TypeRefUser(Module, "Terraria.Localization", "GameCulture", _terraria);
+			var gameCultureType = new TypeRefUser(Module, "Terraria.Localization", "GameCulture", terraria);
 			_modTranslationAddTranslationMethod = new MemberRefUser(Module, "AddTranslation",
 				MethodSig.CreateInstance(Module.CorLibTypes.Void, new ClassSig(gameCultureType), Module.CorLibTypes.String),
 				_modTranslationType);
@@ -36,22 +37,19 @@ namespace ModLocalizer
 				new FieldSig(new ClassSig(gameCultureType)),
 				gameCultureType);
 
-			var languageType = new TypeRefUser(Module, "Terraria.Localization", "Language", _terraria);
+			var languageType = new TypeRefUser(Module, "Terraria.Localization", "Language", terraria);
 			_getTextValueMethod = new MemberRefUser(Module, "GetTextValue", MethodSig.CreateStatic(Module.CorLibTypes.String, Module.CorLibTypes.String), languageType);
 
-			var modType = new TypeRefUser(Module, "Terraria.ModLoader", "Mod", _terraria);
+			var modType = new TypeRefUser(Module, "Terraria.ModLoader", "Mod", terraria);
 
 			_modAddTranslationMethod = new MemberRefUser(Module, "AddTranslation", MethodSig.CreateInstance(Module.CorLibTypes.Void, new ClassSig(_modTranslationType)), modType);
 			_modCreateTranslationMethod = new MemberRefUser(Module, "CreateTranslation", MethodSig.CreateInstance(new ClassSig(_modTranslationType), Module.CorLibTypes.String), modType);
 
 			var type = Module.Types.Single(x => string.Equals(x.BaseType?.FullName, "Terraria.ModLoader.Mod",
 				StringComparison.Ordinal));
-			_modInstanceField = new FieldDefUser(ModInstanceFieldName, new FieldSig(new ClassSig(type)), FieldAttributes.Assembly | FieldAttributes.Static);
-			type.Fields.Add(_modInstanceField);
 			var ctor = importer.Import(typeof(CompilerGeneratedAttribute).GetConstructor(new Type[0])) as IMethodDefOrRef;
-			_modInstanceField.CustomAttributes.Add(new CustomAttribute(ctor));
 
-			_modSetTranslationMethod = new MethodDefUser(ModSetTranslationMethod, MethodSig.CreateStatic(Module.CorLibTypes.Void));
+			_modSetTranslationMethod = new MethodDefUser(ModSetTranslationMethod, MethodSig.CreateInstance(Module.CorLibTypes.Void), MethodAttributes.Private);
 			type.Methods.Add(_modSetTranslationMethod);
 
 			_modSetTranslationMethod.CustomAttributes.Add(new CustomAttribute(ctor));
@@ -60,6 +58,20 @@ namespace ModLocalizer
 				Instructions = { OpCodes.Ret.ToInstruction() },
 				Variables = { new Local(new ClassSig(_modTranslationType), "translation", 0) }
 			};
+
+			var loadMethod = type.FindMethod("Load", MethodSig.CreateInstance(Module.CorLibTypes.Void));
+			if (loadMethod?.HasBody != true)
+			{
+				Console.WriteLine("Could not find Mod.Load() method; miscs translations will not be added.");
+				return;
+			}
+
+			var instructions = loadMethod.Body.Instructions;
+			instructions.Insert(instructions.Count - 1, new[]
+			{
+				OpCodes.Ldarg_0.ToInstruction(),
+				OpCodes.Call.ToInstruction(_modSetTranslationMethod)
+			});
 		}
 
 		public void Emit(MethodDef method, string propertyName, string content)
@@ -126,9 +138,9 @@ namespace ModLocalizer
 
 			instructions.Insert(instructions.Count - 1, new[]
 			{
-				OpCodes.Ldsfld.ToInstruction(_modInstanceField),
+				OpCodes.Ldarg_0.ToInstruction(),
 				OpCodes.Ldstr.ToInstruction(key),
-				OpCodes.Callvirt.ToInstruction(_modCreateTranslationMethod),
+				OpCodes.Call.ToInstruction(_modCreateTranslationMethod),
 				OpCodes.Stloc_0.ToInstruction(),
 
 				OpCodes.Ldloc_0.ToInstruction(),
@@ -140,9 +152,9 @@ namespace ModLocalizer
 				OpCodes.Ldstr.ToInstruction(content),
 				OpCodes.Callvirt.ToInstruction(_modTranslationAddTranslationMethod),
 
-				OpCodes.Ldsfld.ToInstruction(_modInstanceField),
+				OpCodes.Ldarg_0.ToInstruction(),
 				OpCodes.Ldloc_0.ToInstruction(),
-				OpCodes.Callvirt.ToInstruction(_modAddTranslationMethod)
+				OpCodes.Call.ToInstruction(_modAddTranslationMethod)
 			});
 
 			return string.Format("Mods.{0}.{1}", _modName, key);
@@ -161,19 +173,16 @@ namespace ModLocalizer
 			return _index[typeName]++;
 		}
 
-		private readonly AssemblyRefUser _terraria = new AssemblyRefUser("Terraria", new Version(1, 3, 5, 1));
 		private readonly TypeRefUser _modTranslationType;
 
 		private readonly MemberRefUser _modTranslationAddTranslationMethod, _modTranslationSetDefaultMethod;
 		private readonly MemberRefUser _gameCultureField, _getTextValueMethod;
 		private readonly MemberRefUser _modAddTranslationMethod, _modCreateTranslationMethod;
 
-		private readonly FieldDef _modInstanceField;
 		private readonly MethodDef _modSetTranslationMethod;
 
 		private readonly string _modName;
 
-		private const string ModInstanceFieldName = "Localizer_instance<>";
 		private const string ModSetTranslationMethod = "Localizer_setTranslation<>";
 	}
 }
