@@ -10,7 +10,7 @@ But this tool solves these problems of tModLoader's internationalization feature
 
 * It can read `.tmod` files and generate game content (like *item names, tooltips and buff descriptions*) in **JSON format** in which format you can translate them into your language with comfort.
 
-* After your translating, the tool will use your translation to modify contents inside .tmod files regardless whether it is open source.
+* After your translating, the tool will use your translation to modify contents inside .tmod files regardless whether it is open source by changing and emitting IL codes in DLLs.
 
 * It doesn't require programming knowledges; all you have to know is how to use command line and edit files using editors like [VSCode][vscode].
 
@@ -42,7 +42,7 @@ You have seven languages for chosing:
 * Portuguese
 * Polish
 
-They're case-sensitive: you must enter them as what exactly they are here.
+They're case-sensitive: you must enter them as what exactly they are here (also without spaces).
 
 If I chose **Chinese**, then my translations will only show when I use Chinese language in *Terraria Settings*.
 So you must carefully choose your language to let your translations work.
@@ -65,7 +65,9 @@ You might get something like this when translating mod:
   }
 ```
 
-You can modify anything except `TypeName`, `Method` and `Namespace`.
+You can modify anything except `TypeName`, `Namespace`, `Method` and `Value`. 
+
+These are used to locate game content in mod file; if you change them, localizer will not able to work properly.
 
 I recommend using [Visual Studio Code][vscode] as your editor.
 
@@ -81,7 +83,9 @@ I recommend using [Visual Studio Code][vscode] as your editor.
 
 - `Tiles` contains map entries which need to be translated.
 
-- `Miscs` contains some other texts.
+- `Miscs` contains some other texts used in `Main.NewText()` which would be added as a new `ModTranslation` object.
+
+- `Customs` contains `ModTranslation` contents which are defined by mod author.
 
 [vscode]: https://code.visualstudio.com/
 [tml]: https://forums.terraria.org/index.php?threads/1-3-tmodloader-a-modding-api.23726/
