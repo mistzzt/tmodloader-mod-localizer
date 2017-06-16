@@ -67,10 +67,14 @@ namespace ModLocalizer
 			}
 
 			var instructions = loadMethod.Body.Instructions;
-			instructions.Insert(instructions.Count - 1, new[]
+
+			// to prevert `call Localizer_setTranslation<>` being transfer target
+			instructions[instructions.Count - 1].OpCode = OpCodes.Ldarg_0; // ret -> ldarg.0
+
+			instructions.Insert(instructions.Count, new[]
 			{
-				OpCodes.Ldarg_0.ToInstruction(),
-				OpCodes.Call.ToInstruction(_modSetTranslationMethod)
+				OpCodes.Call.ToInstruction(_modSetTranslationMethod),
+				OpCodes.Ret.ToInstruction()
 			});
 		}
 
