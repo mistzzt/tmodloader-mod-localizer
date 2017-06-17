@@ -140,12 +140,10 @@ namespace ModLocalizer
 						}
 						else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat")) // for thorium mod
 						{
-							int index2 = index, reversedListIndex = 0, argumentCount = 0;
+							int index2 = index, argumentCount = 0;
 							var total = n.MethodSig.Params.Count + 1;
 
-							var reversedList = translation.ModifyTooltips.GetRange(index, translation.ModifyTooltips.Count - index);
-							reversedList.Reverse();
-
+							// get ldstr instructions we need to change their operand
 							var ldstrList = new List<Instruction>();
 							while (--index2 > 0 && argumentCount < total)
 							{
@@ -160,10 +158,11 @@ namespace ModLocalizer
 									ldstrList.Add(ins);
 								}
 							}
+							ldstrList.Reverse();
 
 							foreach (var ldstrInstruction in ldstrList)
 							{
-								ldstrInstruction.Operand = reversedList[reversedListIndex++];
+								ldstrInstruction.Operand = translation.ModifyTooltips[listIndex++];
 								index++;
 							}
 						}
@@ -409,8 +408,8 @@ namespace ModLocalizer
 							var ins = inst[index];
 
 							if (!ins.OpCode.Equals(OpCodes.Call) ||
-							    !(ins.Operand is IMethod m) ||
-							    !string.Equals(m.Name.ToString(), "CreateTranslation"))
+								!(ins.Operand is IMethod m) ||
+								!string.Equals(m.Name.ToString(), "CreateTranslation"))
 								continue;
 
 							if (!(ins = inst[++index]).IsStloc())
