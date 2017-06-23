@@ -62,8 +62,17 @@ namespace ModLocalizer
 			var loadMethod = type.FindMethod("Load", MethodSig.CreateInstance(Module.CorLibTypes.Void));
 			if (loadMethod?.HasBody != true)
 			{
-				Console.WriteLine("Could not find Mod.Load() method; miscs translations will not be added.");
-				return;
+				Console.WriteLine("Could not find Mod.Load() method; trying to add one.");
+
+				loadMethod = new MethodDefUser("Load", MethodSig.CreateInstance(Module.CorLibTypes.Void), MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual)
+				{
+					Body = new CilBody
+					{
+						Instructions = { OpCodes.Ret.ToInstruction() },
+					}
+				};
+
+				type.Methods.Add(loadMethod);
 			}
 
 			var instructions = loadMethod.Body.Instructions;
