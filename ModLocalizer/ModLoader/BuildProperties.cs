@@ -43,7 +43,7 @@ namespace ModLocalizer.ModLoader
 				if (split.Length == 1)
 					return new ModReference(split[0], null);
 
-				if (split.Length != 1)
+				if (split.Length > 1)
 					throw new Exception("Invalid mod reference: " + spec);
 
 				try
