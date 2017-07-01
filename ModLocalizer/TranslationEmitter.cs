@@ -107,6 +107,9 @@ namespace ModLocalizer
 				OpCodes.Ldstr.ToInstruction(content),
 				OpCodes.Callvirt.ToInstruction(_modTranslationAddTranslationMethod)
 			});
+
+			method.Body.SimplifyBranches();
+			method.Body.OptimizeBranches();
 		}
 
 		public void Emit(MethodDef method, Local local, string content, int line)
@@ -123,6 +126,9 @@ namespace ModLocalizer
 				OpCodes.Ldstr.ToInstruction(content),
 				OpCodes.Callvirt.ToInstruction(_modTranslationAddTranslationMethod)
 			});
+
+			method.Body.SimplifyBranches();
+			method.Body.OptimizeBranches();
 		}
 
 		public void Emit(MethodDef method, Local local, string content)
@@ -143,6 +149,9 @@ namespace ModLocalizer
 			ldstr.Operand = key;
 
 			method.Body.Instructions.Insert(index + 1, OpCodes.Call.ToInstruction(_getTextValueMethod));
+
+			method.Body.SimplifyBranches();
+			method.Body.OptimizeBranches();
 		}
 
 		private string AddTranslation(string key, string @default, string content)
