@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Dumper.cs" />
     <Compile Include="Extensions\InstructionExtensions.cs" />
+    <Compile Include="Extensions\TypeDefExtensions.cs" />
     <Compile Include="Framework\BuffTranslation.cs" />
     <Compile Include="Framework\CustomTranslation.cs" />
     <Compile Include="Framework\ItemTranslation.cs" />

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using ModLocalizer.Extensions;
 using ModLocalizer.Framework;
 using ModLocalizer.ModLoader;
 using Newtonsoft.Json;
@@ -57,6 +58,10 @@ namespace ModLocalizer
 
 		private void LoadAssembly()
 		{
+#if DEBUG
+			File.WriteAllBytes("dump_temp_mod.dll", _assembly);
+#endif
+
 			var assembly = AssemblyDef.Load(_assembly);
 
 			_module = assembly.Modules.Single();
@@ -95,7 +100,7 @@ namespace ModLocalizer
 			var items = new List<ItemTranslation>();
 
 			foreach (var type in _module.Types.Where(
-				t => t.BaseType?.Name.ToString().Equals("ModItem", StringComparison.Ordinal) == true))
+				t => t.HasBaseType("Terraria.ModLoader.ModItem")))
 			{
 				var item = new ItemTranslation { TypeName = type.Name, Namespace = type.Namespace };
 
@@ -216,7 +221,7 @@ namespace ModLocalizer
 			var npcs = new List<NpcTranslation>();
 
 			foreach (var type in _module.Types.Where(
-				t => t.BaseType?.Name.ToString().Equals("ModNPC", StringComparison.Ordinal) == true))
+				t => t.HasBaseType("Terraria.ModLoader.ModNPC")))
 			{
 				var npc = new NpcTranslation { TypeName = type.Name, Namespace = type.Namespace };
 
@@ -304,7 +309,7 @@ namespace ModLocalizer
 		{
 			var buffs = new List<BuffTranslation>();
 
-			foreach (var type in _module.Types.Where(t => t.BaseType?.Name.ToString().Equals("ModBuff", StringComparison.Ordinal) == true))
+			foreach (var type in _module.Types.Where(t => t.HasBaseType("Terraria.ModLoader.ModBuff")))
 			{
 				var buff = new BuffTranslation { TypeName = type.Name, Namespace = type.Namespace };
 
@@ -394,7 +399,7 @@ namespace ModLocalizer
 		{
 			var entries = new List<MapEntryTranslation>();
 
-			foreach (var type in _module.Types.Where(t => t.BaseType?.Name.ToString().Equals("ModTile", StringComparison.Ordinal) == true))
+			foreach (var type in _module.Types.Where(t => t.HasBaseType("Terraria.ModLoader.ModTile")))
 			{
 				var entry = new MapEntryTranslation { TypeName = type.Name, Namespace = type.Namespace };
 
@@ -448,7 +453,7 @@ namespace ModLocalizer
 
 						if (!ins.OpCode.Equals(OpCodes.Call) ||
 							!(ins.Operand is IMethod m) ||
-						    !string.Equals(m.Name.ToString(), "CreateTranslation"))
+							!string.Equals(m.Name.ToString(), "CreateTranslation"))
 							continue;
 
 						if (!(ins = inst[++index]).IsStloc())
@@ -464,7 +469,7 @@ namespace ModLocalizer
 
 						while (index < inst.Count - 1 && !(ins = inst[++index]).IsLdloc() || ins.GetLocal(method.Body.Variables) != local) { }
 
-						if(!(ins = inst[++index]).OpCode.Equals(OpCodes.Ldstr))
+						if (!(ins = inst[++index]).OpCode.Equals(OpCodes.Ldstr))
 							continue;
 
 						custom.Value = ins.Operand as string;
