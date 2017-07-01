@@ -11,7 +11,7 @@ namespace ModLocalizer.ModLoader
 {
 	internal sealed class TmodFile : IEnumerable<KeyValuePair<string, byte[]>>
 	{
-		public static readonly Version ModLoaderVersion = new Version(0, 10);
+		public static readonly Version ModLoaderVersion = new Version(0, 10, 0, 2);
 
 		private const string MagicHeader = "TMOD";
 

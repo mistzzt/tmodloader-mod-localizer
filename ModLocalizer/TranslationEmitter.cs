@@ -21,7 +21,7 @@ namespace ModLocalizer
 
 			var importer = new Importer(Module);
 
-			var terraria = module.GetAssemblyRef("Terraria") ?? new AssemblyRefUser("Terraria", new Version(1, 3, 5, 1));
+			var terraria = module.GetAssemblyRef("Terraria") ?? new AssemblyRefUser("Terraria", TerrariaVersion);
 			_modTranslationType = new TypeRefUser(Module, "Terraria.ModLoader", "ModTranslation", terraria);
 
 			_modTranslationSetDefaultMethod = new MemberRefUser(Module, "SetDefault",
@@ -197,5 +197,7 @@ namespace ModLocalizer
 		private readonly string _modName;
 
 		private const string ModSetTranslationMethod = "Localizer_setTranslation<>";
+
+		private static readonly Version TerrariaVersion = new Version(1, 3, 5, 1);
 	}
 }
