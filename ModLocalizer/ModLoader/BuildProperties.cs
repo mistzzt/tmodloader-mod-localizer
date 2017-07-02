@@ -27,15 +27,15 @@ namespace ModLocalizer.ModLoader
 		public struct ModReference
 		{
 			public string Mod;
-			public Version Target;
+			public string Target;
 
 			public ModReference(string mod, Version target)
 			{
 				Mod = mod;
-				Target = target;
+				Target = target.ToString();
 			}
 
-			public override string ToString() => Target == null ? Mod : string.Concat(Mod, "@", Target.ToString());
+			public override string ToString() => Target == null ? Mod : string.Concat(Mod, "@", Target);
 
 			public static ModReference Parse(string spec)
 			{
