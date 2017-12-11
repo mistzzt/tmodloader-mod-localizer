@@ -48,6 +48,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultConfigurations.cs" />
     <Compile Include="Dumper.cs" />
     <Compile Include="Extensions\InstructionExtensions.cs" />
     <Compile Include="Extensions\TypeDefExtensions.cs" />

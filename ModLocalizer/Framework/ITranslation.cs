@@ -1,9 +1,9 @@
 ﻿namespace ModLocalizer.Framework
 {
-	public interface ITranslation
-	{
-		string TypeName { get; }
+    public interface ITranslation
+    {
+        string TypeName { get; }
 
-		string Namespace { get; }
-	}
+        string Namespace { get; }
+    }
 }
