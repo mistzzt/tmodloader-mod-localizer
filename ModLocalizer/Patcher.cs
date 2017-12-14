@@ -48,6 +48,8 @@ namespace ModLocalizer
             ApplyMapEntries();
             ApplyCustomTranslations();
 
+            InjectBackup();
+
             Save();
         }
 
@@ -426,6 +428,32 @@ namespace ModLocalizer
                             emitter.Emit(method, local, content, index + 1);
                         }
                     }
+                }
+            }
+        }
+
+        private void InjectBackup()
+        {
+            var prefix = GetType().Namespace ?? throw new InvalidOperationException();
+
+            AddCategory(DefaultConfigurations.LocalizerFiles.ItemFolder);
+            AddCategory(DefaultConfigurations.LocalizerFiles.BuffFolder);
+            AddCategory(DefaultConfigurations.LocalizerFiles.CustomFolder);
+            AddCategory(DefaultConfigurations.LocalizerFiles.MiscFolder);
+            AddCategory(DefaultConfigurations.LocalizerFiles.NpcFolder);
+            AddCategory(DefaultConfigurations.LocalizerFiles.TileFolder);
+
+            // tricky way to include info.json/modinfo.json
+            AddCategory(".");
+
+            void AddCategory(string category)
+            {
+                foreach (var file in Directory.EnumerateFiles(GetPath(category), "*.json"))
+                {
+                    _mod.AddFile(
+                        Path.Combine(prefix, category, Path.GetFileName(file) ?? throw new InvalidOperationException()),
+                        File.ReadAllBytes(file)
+                    );
                 }
             }
         }
