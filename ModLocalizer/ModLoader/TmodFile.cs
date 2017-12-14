@@ -11,6 +11,14 @@ namespace ModLocalizer.ModLoader
 {
     internal sealed class TmodFile : IEnumerable<KeyValuePair<string, byte[]>>
     {
+        private const string AllPlatformAssemblyFileName = "All.dll";
+
+        private const string WindowsPlatformAssemblyFileName = "Windows.dll";
+
+        private const string MonoPlatformAssemblyFileName = "Mono.dll";
+
+        public const string InfoFileName = "Info";
+
         private const string MagicHeader = "TMOD";
 
         private readonly string _path;
@@ -129,34 +137,35 @@ namespace ModLocalizer.ModLoader
                 }
             }
 
-            if (!HasFile("Info"))
-                throw new Exception("Missing Info file");
+            if (!HasFile(InfoFileName))
+                throw new Exception($"Missing {InfoFileName} file");
 
-            if (!HasFile("All.dll") && !(HasFile("Windows.dll") && HasFile("Mono.dll")))
-                throw new Exception("Missing All.dll or Windows.dll and Mono.dll");
+            if (!HasFile(AllPlatformAssemblyFileName) && !(HasFile(WindowsPlatformAssemblyFileName) && HasFile(MonoPlatformAssemblyFileName)))
+                throw new Exception($"Missing {AllPlatformAssemblyFileName} or {WindowsPlatformAssemblyFileName} and {MonoPlatformAssemblyFileName}");
         }
 
-        public byte[] GetMainAssembly(bool monoOnly)
+        public byte[] GetPrimaryAssembly(bool monoOnly)
         {
             byte[] data;
             if (monoOnly)
             {
-                data = GetFile("Mono.dll");
+                data = GetFile(MonoPlatformAssemblyFileName);
             }
             else
             {
-                data = HasFile("All.dll") ? GetFile("All.dll") : GetFile("Windows.dll");
+                data = HasFile(AllPlatformAssemblyFileName) ? GetFile(AllPlatformAssemblyFileName) : GetFile(WindowsPlatformAssemblyFileName);
             }
 
             return data;
         }
 
-        public void WriteMainAssembly(byte[] data, bool monoOnly)
+        public void WritePrimaryAssembly(byte[] data, bool monoOnly)
         {
             var dataCopy = new byte[data.Length];
             data.CopyTo(dataCopy, 0);
 
-            var fileName = monoOnly ? "Mono.dll" : (HasFile("All.dll") ? "All.dll" : "Windows.dll");
+            var fileName = monoOnly ? MonoPlatformAssemblyFileName :
+                (HasFile(AllPlatformAssemblyFileName) ? AllPlatformAssemblyFileName : WindowsPlatformAssemblyFileName);
             _files[fileName] = dataCopy;
         }
 

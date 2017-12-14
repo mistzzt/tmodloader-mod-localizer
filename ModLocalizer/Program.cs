@@ -65,13 +65,13 @@ namespace ModLocalizer
                 path = pathArgument.Value;
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    Console.WriteLine("Please specify the mod file to be processed.");
+                    Console.Error.WriteLine("Please specify the mod file to be processed.");
                     Environment.Exit(1);
                 }
 
                 if (!dump && string.IsNullOrWhiteSpace(folder))
                 {
-                    Console.WriteLine("Please specify the content folder for mod patching.");
+                    Console.Error.WriteLine("Please specify the content folder for mod patching.");
                     Environment.Exit(1);
                 }
 
@@ -95,7 +95,7 @@ namespace ModLocalizer
 
             if (!File.Exists(modPath))
             {
-                Console.WriteLine("mod file does not exist");
+                Console.Error.WriteLine("mod file does not exist");
                 return;
             }
 

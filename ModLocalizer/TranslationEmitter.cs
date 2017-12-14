@@ -12,6 +12,12 @@ namespace ModLocalizer
     {
         public ModuleDef Module { get; }
 
+        /// <summary>
+        /// Initializes a new instance of TranslationEmitter.
+        /// </summary>
+        /// <param name="module">The module of the target assembly.</param>
+        /// <param name="gameCulture">The game culture selection.</param>
+        /// <param name="modName">The mod name.</param>
         public TranslationEmitter(ModuleDef module, string gameCulture, string modName)
         {
             _modName = modName;
@@ -87,6 +93,12 @@ namespace ModLocalizer
             });
         }
 
+        /// <summary>
+        /// Emits codes to add translations for existing ModTranslation instances.
+        /// </summary>
+        /// <param name="method">The target method.</param>
+        /// <param name="propertyName">The property name of ModTranslation instance.</param>
+        /// <param name="content">The translation content.</param>
         public void Emit(MethodDef method, string propertyName, string content)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
@@ -112,6 +124,13 @@ namespace ModLocalizer
             method.Body.OptimizeBranches();
         }
 
+        /// <summary>
+        /// Emits codes to add translations for a locally defined ModTranslation instance.
+        /// </summary>
+        /// <param name="method">The target method.</param>
+        /// <param name="local">The local which stores ModTranslation instance.</param>
+        /// <param name="content">The translation content.</param>
+        /// <param name="line">The index of instruction to be inserted before.</param>
         public void Emit(MethodDef method, Local local, string content, int line)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));
@@ -131,11 +150,24 @@ namespace ModLocalizer
             method.Body.OptimizeBranches();
         }
 
+        /// <summary>
+        /// Emits codes to add translations for a locally defined ModTranslation instance.
+        /// </summary>
+        /// <param name="method">The target method.</param>
+        /// <param name="local">The local which stores ModTranslation instance.</param>
+        /// <param name="content">The translation content.</param>
         public void Emit(MethodDef method, Local local, string content)
         {
             Emit(method, local, content, method.Body.Instructions.Count - 1);
         }
 
+        /// <summary>
+        /// Emits codes to replace originally `ldstr` instruction with getting translation
+        /// from a ModTranslation instance created by localizer.
+        /// </summary>
+        /// <param name="method">The target method.</param>
+        /// <param name="ldstr">The ldstr instruction to be replaced.</param>
+        /// <param name="content">The translation content.</param>
         public void Emit(MethodDef method, Instruction ldstr, string content)
         {
             if (method == null) throw new ArgumentNullException(nameof(method));

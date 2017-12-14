@@ -23,7 +23,7 @@ namespace ModLocalizer
         {
             _mod = mod;
 
-            _assembly = _mod.GetMainAssembly(false);
+            _assembly = _mod.GetPrimaryAssembly(false);
         }
 
         public void Run()
@@ -38,12 +38,12 @@ namespace ModLocalizer
             }
 
             Directory.CreateDirectory(_mod.Name);
-            Directory.CreateDirectory(GetPath("Items"));
-            Directory.CreateDirectory(GetPath("NPCs"));
-            Directory.CreateDirectory(GetPath("Buffs"));
-            Directory.CreateDirectory(GetPath("Miscs"));
-            Directory.CreateDirectory(GetPath("Tiles"));
-            Directory.CreateDirectory(GetPath("Customs"));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.ItemFolder));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.NpcFolder));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.BuffFolder));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.MiscFolder));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.TileFolder));
+            Directory.CreateDirectory(GetPath(DefaultConfigurations.LocalizerFiles.CustomFolder));
 
             LoadAssembly();
             DumpBuildProperties();
@@ -69,11 +69,11 @@ namespace ModLocalizer
 
         private void DumpBuildProperties()
         {
-            var infoData = _mod.GetFile("Info");
+            var infoData = _mod.GetFile(TmodFile.InfoFileName);
 
             var properties = BuildProperties.ReadBytes(infoData);
 
-            using (var fs = new FileStream(GetPath("Info.json"), FileMode.Create))
+            using (var fs = new FileStream(GetPath(DefaultConfigurations.LocalizerFiles.InfoConfigurationFile), FileMode.Create))
             {
                 using (var sw = new StreamWriter(fs))
                 {
@@ -86,7 +86,7 @@ namespace ModLocalizer
         {
             var properties = _mod.Properties;
 
-            using (var fs = new FileStream(GetPath("ModInfo.json"), FileMode.Create))
+            using (var fs = new FileStream(GetPath(DefaultConfigurations.LocalizerFiles.ModInfoConfigurationFile), FileMode.Create))
             {
                 using (var sw = new StreamWriter(fs))
                 {
@@ -213,7 +213,7 @@ namespace ModLocalizer
                 items.Add(item);
             }
 
-            WriteFiles(items, "Items");
+            WriteFiles(items, DefaultConfigurations.LocalizerFiles.ItemFolder);
         }
 
         private void DumpNpcs()
@@ -302,7 +302,7 @@ namespace ModLocalizer
                 npcs.Add(npc);
             }
 
-            WriteFiles(npcs, "NPCs");
+            WriteFiles(npcs, DefaultConfigurations.LocalizerFiles.NpcFolder);
         }
 
         private void DumpBuffs()
@@ -353,7 +353,7 @@ namespace ModLocalizer
                 buffs.Add(buff);
             }
 
-            WriteFiles(buffs, "Buffs");
+            WriteFiles(buffs, DefaultConfigurations.LocalizerFiles.BuffFolder);
         }
 
         private void DumpMiscs()
@@ -392,7 +392,7 @@ namespace ModLocalizer
                 }
             }
 
-            WriteFiles(miscs, "Miscs");
+            WriteFiles(miscs, DefaultConfigurations.LocalizerFiles.MiscFolder);
         }
 
         private void DumpMapEntries()

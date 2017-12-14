@@ -30,8 +30,8 @@ namespace ModLocalizer
             _contentPath = contentPath;
             _language = language;
 
-            _assembly = _mod.GetMainAssembly(false);
-            _monoAssembly = _mod.GetMainAssembly(true);
+            _assembly = _mod.GetPrimaryAssembly(false);
+            _monoAssembly = _mod.GetPrimaryAssembly(true);
         }
 
         public void Run()
@@ -65,7 +65,7 @@ namespace ModLocalizer
 
         private void ApplyBuildProperties()
         {
-            if (!File.Exists(GetPath("Info.json")))
+            if (!File.Exists(GetPath(DefaultConfigurations.LocalizerFiles.InfoConfigurationFile)))
             {
                 return;
             }
@@ -73,23 +73,23 @@ namespace ModLocalizer
             var info = JsonConvert.DeserializeObject<BuildProperties>(File.ReadAllText(GetPath("Info.json")));
             var data = info.ToBytes();
 
-            _mod.AddFile("Info", data);
+            _mod.AddFile(TmodFile.InfoFileName, data);
         }
 
         private void ApplyTmodProperties()
         {
-            if (!File.Exists(GetPath("ModInfo.json")))
+            if (!File.Exists(GetPath(DefaultConfigurations.LocalizerFiles.ModInfoConfigurationFile)))
             {
                 return;
             }
 
-            var prop = JsonConvert.DeserializeObject<TmodProperties>(File.ReadAllText(GetPath("ModInfo.json")));
+            var prop = JsonConvert.DeserializeObject<TmodProperties>(File.ReadAllText(GetPath(DefaultConfigurations.LocalizerFiles.ModInfoConfigurationFile)));
             _mod.Properties = prop;
         }
 
         private void ApplyItems()
         {
-            var texts = LoadTranslations<ItemTranslation>("Items");
+            var texts = LoadTranslations<ItemTranslation>(DefaultConfigurations.LocalizerFiles.ItemFolder);
 
             foreach (var text in texts)
             {
@@ -199,7 +199,7 @@ namespace ModLocalizer
 
         private void ApplyNpcs()
         {
-            var texts = LoadTranslations<NpcTranslation>("Npcs");
+            var texts = LoadTranslations<NpcTranslation>(DefaultConfigurations.LocalizerFiles.NpcFolder);
 
             foreach (var text in texts)
             {
@@ -267,7 +267,7 @@ namespace ModLocalizer
 
         private void ApplyBuffs()
         {
-            var texts = LoadTranslations<BuffTranslation>("Buffs");
+            var texts = LoadTranslations<BuffTranslation>(DefaultConfigurations.LocalizerFiles.BuffFolder);
 
             foreach (var text in texts)
             {
@@ -298,7 +298,7 @@ namespace ModLocalizer
 
         private void ApplyMiscs()
         {
-            var texts = LoadTranslations<NewTextTranslation>("Miscs");
+            var texts = LoadTranslations<NewTextTranslation>(DefaultConfigurations.LocalizerFiles.MiscFolder);
 
             foreach (var text in texts)
             {
@@ -340,7 +340,7 @@ namespace ModLocalizer
 
         private void ApplyMapEntries()
         {
-            var texts = LoadTranslations<MapEntryTranslation>("Tiles");
+            var texts = LoadTranslations<MapEntryTranslation>(DefaultConfigurations.LocalizerFiles.TileFolder);
 
             foreach (var text in texts)
             {
@@ -388,7 +388,7 @@ namespace ModLocalizer
 
         private void ApplyCustomTranslations()
         {
-            var texts = LoadTranslations<CustomTranslation>("Customs");
+            var texts = LoadTranslations<CustomTranslation>(DefaultConfigurations.LocalizerFiles.CustomFolder);
 
             ApplyCustomTranslationsInternal(texts, _emitter);
             ApplyCustomTranslationsInternal(texts, _monoEmitter);
@@ -434,13 +434,13 @@ namespace ModLocalizer
         {
             var tmp = Path.GetTempFileName();
             _module.Write(tmp);
-            _mod.WriteMainAssembly(File.ReadAllBytes(tmp), false);
+            _mod.WritePrimaryAssembly(File.ReadAllBytes(tmp), false);
 
             if (_monoAssembly != null)
             {
                 tmp = Path.GetTempFileName();
                 _monoModule.Write(tmp);
-                _mod.WriteMainAssembly(File.ReadAllBytes(tmp), true);
+                _mod.WritePrimaryAssembly(File.ReadAllBytes(tmp), true);
             }
 
             _mod.Save(string.Format(DefaultConfigurations.OutputFileNameFormat, _mod.Name));
