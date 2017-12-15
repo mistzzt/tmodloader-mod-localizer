@@ -19,6 +19,8 @@ namespace ModLocalizer.ModLoader
 
         public const string InfoFileName = "Info";
 
+        public const char PathSeparator = '/';
+
         private const string MagicHeader = "TMOD";
 
         private readonly string _path;
@@ -169,6 +171,20 @@ namespace ModLocalizer.ModLoader
             _files[fileName] = dataCopy;
         }
 
+        public void AddResourceFile(string path, byte[] data)
+        {
+            var dataCopy = new byte[data.Length];
+            data.CopyTo(dataCopy, 0);
+
+            path = Path.Combine(ResourceFolderPrefix, path);
+            _files[path.Replace('\\', PathSeparator)] = dataCopy;
+        }
+
+        public IEnumerable<string> GetResourceFiles()
+        {
+            return _files.Keys.Where(x => x.StartsWith(ResourceFolderPrefix));
+        }
+
         public TmodProperties Properties
         {
             get => new TmodProperties
@@ -185,5 +201,7 @@ namespace ModLocalizer.ModLoader
                 _modLoaderVersion = Version.Parse(value.ModLoaderVersion);
             }
         }
+
+        public readonly string ResourceFolderPrefix = typeof(Program).Namespace ?? throw new InvalidOperationException();
     }
 }

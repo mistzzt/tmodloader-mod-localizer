@@ -54,6 +54,8 @@ namespace ModLocalizer
             DumpMiscs();
             DumpMapEntries();
             DumpCustomTranslations();
+
+            DumpResources();
         }
 
         private void LoadAssembly()
@@ -263,10 +265,8 @@ namespace ModLocalizer
                 {
                     var inst = method.Body.Instructions;
 
-                    for (var index = 0; index < inst.Count; index++)
+                    foreach (var ins in inst)
                     {
-                        var ins = inst[index];
-
                         if (ins.OpCode != OpCodes.Ldstr)
                             continue;
 
@@ -296,6 +296,22 @@ namespace ModLocalizer
                             npc.ShopButton1 = value;
                         else if (ins.OpCode.Equals(OpCodes.Ldarg_2))
                             npc.ShopButton2 = value;
+                    }
+                }
+
+                method = type.FindMethod("TownNPCName");
+                if (method?.HasBody == true)
+                {
+                    var inst = method.Body.Instructions;
+
+                    foreach (var ins in inst)
+                    {
+                        if (ins.OpCode != OpCodes.Ldstr)
+                            continue;
+
+                        var value = ins.Operand as string;
+
+                        npc.TownNpcNames.Add(value);
                     }
                 }
 
@@ -479,6 +495,22 @@ namespace ModLocalizer
             }
 
             WriteFiles(list, "Customs");
+        }
+
+        private void DumpResources()
+        {
+            foreach (var resourceFile in _mod.GetResourceFiles())
+            {
+                var path = resourceFile.Replace(TmodFile.PathSeparator, Path.DirectorySeparatorChar);
+                var directoryName = Path.GetDirectoryName(path);
+
+                if (directoryName != null)
+                {
+                    Directory.CreateDirectory(GetPath(directoryName));
+                }
+
+                File.WriteAllBytes(GetPath(path), _mod.GetFile(resourceFile));
+            }
         }
 
         private string GetPath(params string[] paths) => Path.Combine(_mod.Name, Path.Combine(paths));

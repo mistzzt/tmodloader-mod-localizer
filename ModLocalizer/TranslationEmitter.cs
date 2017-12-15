@@ -211,6 +211,8 @@ namespace ModLocalizer
                 OpCodes.Call.ToInstruction(_modAddTranslationMethod)
             });
 
+            // translation implementation in tModLoader:
+            // Mods.<ModName>.<Key>
             return string.Format("Mods.{0}.{1}", _modName, key);
         }
 

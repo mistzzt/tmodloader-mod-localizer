@@ -30,5 +30,10 @@ namespace ModLocalizer
 
             public const string ModInfoConfigurationFile = "ModInfo.json";
         }
+
+        public static class LocalizerWarns
+        {
+            public const string UnmatchedListCount = "Unmatched list.";
+        }
     }
 }
