@@ -15,5 +15,7 @@ namespace ModLocalizer.Framework
         public string ShopButton2 { get; set; } = string.Empty;
 
         public List<string> ChatTexts { get; set; } = new List<string>();
+
+        public List<string> TownNpcNames { get; set; } = new List<string>();
     }
 }

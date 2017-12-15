@@ -51,6 +51,7 @@
     <Compile Include="DefaultConfigurations.cs" />
     <Compile Include="Dumper.cs" />
     <Compile Include="Extensions\InstructionExtensions.cs" />
+    <Compile Include="Extensions\InstructionIterationExtensions.cs" />
     <Compile Include="Extensions\TypeDefExtensions.cs" />
     <Compile Include="Framework\BuffTranslation.cs" />
     <Compile Include="Framework\CustomTranslation.cs" />

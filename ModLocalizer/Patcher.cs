@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using ModLocalizer.Extensions;
 using ModLocalizer.Framework;
 using ModLocalizer.ModLoader;
 using Newtonsoft.Json;
@@ -226,24 +227,6 @@ namespace ModLocalizer
                         emitter.Emit(method, "DisplayName", translation.Name);
                 }
 
-                method = type.FindMethod("GetChat");
-                if (method?.HasBody == true)
-                {
-                    var inst = method.Body.Instructions;
-
-                    var listindex = 0;
-
-                    for (var index = 0; index < inst.Count; index++)
-                    {
-                        var ins = inst[index];
-
-                        if (ins.OpCode != OpCodes.Ldstr)
-                            continue;
-
-                        emitter.Emit(method, ins, translation.ChatTexts[listindex++]);
-                    }
-                }
-
                 method = type.FindMethod("SetChatButtons");
                 if (method?.HasBody == true)
                 {
@@ -264,6 +247,12 @@ namespace ModLocalizer
                             emitter.Emit(method, inst[index], translation.ShopButton2);
                     }
                 }
+
+                method = type.FindMethod("GetChat");
+                method?.ApplyPatch(ins => ins.OpCode.Equals(OpCodes.Ldstr), emitter, translation, nameof(translation.ChatTexts));
+
+                method = type.FindMethod("TownNPCName");
+                method?.ApplyPatch(ins => ins.OpCode.Equals(OpCodes.Ldstr), emitter, translation, nameof(translation.TownNpcNames));
             }
         }
 
@@ -318,25 +307,17 @@ namespace ModLocalizer
 
                 var method = type?.FindMethod(translation.Method);
 
-                if (method?.HasBody != true)
-                    return;
-
-                var inst = method.Body.Instructions;
-                var listIndex = 0;
-
-                for (var index = 0; index < inst.Count; index++)
+                const int instructionPosition = 5;
+                method?.ApplyPatch((source, index) =>
                 {
-                    var ins = inst[index];
+                    if (index < instructionPosition) return false;
+                    if (!source[index].OpCode.Equals(OpCodes.Ldstr)) return false;
 
-                    if (!ins.OpCode.Equals(OpCodes.Call) || !(ins.Operand is IMethodDefOrRef m) ||
-                        !m.Name.ToString().Equals("NewText", StringComparison.Ordinal))
-                        continue;
+                    var ins = source[index + instructionPosition];
 
-                    if ((ins = inst[index - 5]).OpCode.Equals(OpCodes.Ldstr))
-                    {
-                        emitter.Emit(method, ins, translation.Contents[listIndex++]);
-                    }
-                }
+                    return ins.OpCode.Equals(OpCodes.Call) && ins.Operand is IMethodDefOrRef m &&
+                           m.Name.ToString().Equals("NewText", StringComparison.Ordinal);
+                }, emitter, translation, nameof(translation.Contents));
             }
         }
 
@@ -434,8 +415,6 @@ namespace ModLocalizer
 
         private void InjectBackup()
         {
-            var prefix = GetType().Namespace ?? throw new InvalidOperationException();
-
             AddCategory(DefaultConfigurations.LocalizerFiles.ItemFolder);
             AddCategory(DefaultConfigurations.LocalizerFiles.BuffFolder);
             AddCategory(DefaultConfigurations.LocalizerFiles.CustomFolder);
@@ -450,8 +429,7 @@ namespace ModLocalizer
             {
                 foreach (var file in Directory.EnumerateFiles(GetPath(category), "*.json"))
                 {
-                    _mod.AddFile(
-                        Path.Combine(prefix, category, Path.GetFileName(file) ?? throw new InvalidOperationException()),
+                    _mod.AddResourceFile(Path.Combine("Backup", category, Path.GetFileName(file) ?? throw new InvalidOperationException()),
                         File.ReadAllBytes(file)
                     );
                 }
