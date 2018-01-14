@@ -290,7 +290,12 @@ namespace ModLocalizer
 
                         var value = ins.Operand as string;
 
-                        ins = inst[index - 1];
+                        // try find which button is here
+                        // however, not every mod follows this rule
+
+                        ins = inst.ElementAtOrDefault(index - 1);
+                        if (ins == null)
+                            continue;
 
                         if (ins.OpCode.Equals(OpCodes.Ldarg_1))
                             npc.ShopButton1 = value;
