@@ -81,13 +81,9 @@ namespace ModLocalizer
                 type.Methods.Add(loadMethod);
             }
 
-            var instructions = loadMethod.Body.Instructions;
-
-            // to prevert `call Localizer_setTranslation<>` being transfer target
-            instructions[instructions.Count - 1].OpCode = OpCodes.Ldarg_0; // ret -> ldarg.0
-
-            instructions.Insert(instructions.Count, new[]
+            loadMethod.Body.Instructions.AppendLast(new[]
             {
+                OpCodes.Ldarg_0.ToInstruction(),
                 OpCodes.Call.ToInstruction(_modSetTranslationMethod),
                 OpCodes.Ret.ToInstruction()
             });
@@ -111,7 +107,7 @@ namespace ModLocalizer
                 MethodSig.CreateInstance(new ClassSig(_modTranslationType)),
                 method.DeclaringType.BaseType);
 
-            instructions.Insert(instructions.Count - 1, new[]
+            instructions.AppendLast(new[]
             {
                 OpCodes.Ldarg_0.ToInstruction(),
                 OpCodes.Call.ToInstruction(translationPropertyGetter),
@@ -190,7 +186,7 @@ namespace ModLocalizer
         {
             var instructions = _modSetTranslationMethod.Body.Instructions;
 
-            instructions.Insert(instructions.Count - 1, new[]
+            instructions.AppendLast(new[]
             {
                 OpCodes.Ldarg_0.ToInstruction(),
                 OpCodes.Ldstr.ToInstruction(key),
