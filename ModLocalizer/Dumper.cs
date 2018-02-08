@@ -128,7 +128,13 @@ namespace ModLocalizer
                         {
                             ins = inst[index - 2];
 
-                            var propertyGetter = (IMethodDefOrRef)ins.Operand;
+                            if (!(ins?.Operand is IMethodDefOrRef propertyGetter))
+                            {
+                                // some translation objects may get from stack;
+                                // In this case, we can't know their type. skip
+                                continue;
+                            }
+
                             switch (propertyGetter.Name)
                             {
                                 case "get_Tooltip":
@@ -249,7 +255,13 @@ namespace ModLocalizer
                         {
                             ins = inst[index - 2];
 
-                            var propertyGetter = (IMethodDefOrRef)ins.Operand;
+                            if (!(ins?.Operand is IMethodDefOrRef propertyGetter))
+                            {
+                                // some translation objects may get from stack;
+                                // In this case, we can't know their type. skip
+                                continue;
+                            }
+
                             switch (propertyGetter.Name)
                             {
                                 case "get_DisplayName":

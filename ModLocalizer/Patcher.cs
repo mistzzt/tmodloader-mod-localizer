@@ -237,14 +237,24 @@ namespace ModLocalizer
                         var ins = inst[index];
 
                         if (ins.OpCode != OpCodes.Ldstr)
+                        {
                             continue;
+                        }
 
-                        ins = inst[index - 1];
+                        ins = inst.ElementAtOrDefault(index - 1);
+                        if (ins == null)
+                        {
+                            continue;
+                        }
 
                         if (ins.OpCode.Equals(OpCodes.Ldarg_1))
+                        {
                             emitter.Emit(method, inst[index], translation.ShopButton1);
+                        }
                         else if (ins.OpCode.Equals(OpCodes.Ldarg_2))
+                        {
                             emitter.Emit(method, inst[index], translation.ShopButton2);
+                        }
                     }
                 }
 

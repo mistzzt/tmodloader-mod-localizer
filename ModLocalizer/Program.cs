@@ -14,7 +14,7 @@ namespace ModLocalizer
                 args = new[]
                 {
 #if DEBUG
-					"ExampleMod.tmod",
+                    "ExampleMod.tmod",
                     "-m",
                     "patch",
                     "-f",
@@ -102,12 +102,16 @@ namespace ModLocalizer
             var modFile = new TmodFile(modPath);
             modFile.Read();
 
+            Console.WriteLine($"{typeof(Program).Namespace} {typeof(Program).Assembly.GetName().Version.ToString(3)} started.");
+            Console.WriteLine($"{modFile.Name} {modFile.Version} loaded.");
+
             if (dump)
             {
                 new Dumper(modFile).Run();
             }
             else
             {
+                Console.WriteLine($"Process mod with target language ${language}...");
                 new Patcher(modFile, contentFolderPath, language).Run();
             }
         }
