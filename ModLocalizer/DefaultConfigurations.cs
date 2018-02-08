@@ -33,7 +33,7 @@ namespace ModLocalizer
 
         public static class LocalizerWarns
         {
-            public const string UnmatchedListCount = "Unmatched list.";
+            public const string UnmatchedListCount = "Unmatched list in method {0}!";
         }
     }
 }

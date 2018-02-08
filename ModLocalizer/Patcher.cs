@@ -323,6 +323,8 @@ namespace ModLocalizer
                     if (index < instructionPosition) return false;
                     if (!source[index].OpCode.Equals(OpCodes.Ldstr)) return false;
 
+                    if (index + instructionPosition >= source.Count) return false;
+
                     var ins = source[index + instructionPosition];
 
                     return ins.OpCode.Equals(OpCodes.Call) && ins.Operand is IMethodDefOrRef m &&

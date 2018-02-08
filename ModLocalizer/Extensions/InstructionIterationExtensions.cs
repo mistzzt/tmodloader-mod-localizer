@@ -38,7 +38,7 @@ namespace ModLocalizer.Extensions
 
                 if (listIndex == list.Count)
                 {
-                    Console.WriteLine(DefaultConfigurations.LocalizerWarns.UnmatchedListCount);
+                    Console.WriteLine(DefaultConfigurations.LocalizerWarns.UnmatchedListCount, method.FullName);
                     break;
                 }
 
