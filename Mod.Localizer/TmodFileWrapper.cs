@@ -197,12 +197,21 @@ namespace Mod.Localizer
 
             public byte[] GetMainAssembly(bool? windows = null)
             {
-                return _impl.InvokeMethod<byte[]>(_modFile, TmodFileImplementation.GetMainAssembly, windows);
+                // Currently we cannot directly call the built-in mechanism as it will call .cctor
+                // of ModLoader class, throwing an exception
+
+                const string allPlatformName = "All.dll";
+
+                return HasFile(allPlatformName) ? GetFile(allPlatformName) :
+                    windows.GetValueOrDefault(true) ? GetFile("Windows.dll") : GetFile("Mono.dll");
             }
 
             public byte[] GetMainPdb(bool? windows = null)
             {
-                return _impl.InvokeMethod<byte[]>(_modFile, TmodFileImplementation.GetMainPdb, windows);
+                const string allPlatformName = "All.pdb";
+
+                return HasFile(allPlatformName) ? GetFile(allPlatformName) :
+                    windows.GetValueOrDefault(true) ? GetFile("Windows.pdb") : GetFile("Mono.pdb");
             }
 
             public IDictionary<string, byte[]> Files =>
