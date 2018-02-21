@@ -14,7 +14,7 @@ namespace Mod.Localizer.ContentProcessor
         public override IReadOnlyList<Content> DumpContents()
         {
             DumpMainAssembly();
-            
+
             return new List<Content>();
         }
 
