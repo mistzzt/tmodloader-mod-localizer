@@ -147,4 +147,7 @@
   <data name="PatchExceptionOccur" xml:space="preserve">
     <value>Exception occurred when patching {0}</value>
   </data>
+  <data name="ProcessComplete" xml:space="preserve">
+    <value>All operations were successfully finished.</value>
+  </data>
 </root>

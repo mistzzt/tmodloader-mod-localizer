@@ -1,4 +1,5 @@
 ﻿using dnlib.DotNet;
+using Newtonsoft.Json;
 
 namespace Mod.Localizer.ContentFramework
 {
@@ -12,6 +13,11 @@ namespace Mod.Localizer.ContentFramework
         {
             TypeName = type.Name;
             Namespace = type.Namespace;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
     }
 }

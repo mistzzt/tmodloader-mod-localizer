@@ -133,6 +133,15 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All operations were successfully finished..
+        /// </summary>
+        internal static string ProcessComplete {
+            get {
+                return ResourceManager.GetString("ProcessComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set program mode: DUMP mod content or PATCH content to mod.
         /// </summary>
         internal static string ProgramModeDesc {

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Config;
@@ -7,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using dnlib.DotNet;
+using Mod.Localizer.ContentFramework;
 using Mod.Localizer.ContentProcessor;
 using Mod.Localizer.Resources;
 
@@ -15,6 +18,10 @@ namespace Mod.Localizer
     internal static class Program
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private static bool _dump = true;
+        private static string _modFilePath, _sourcePath;
+        private static string _language = "Chinese";
 
         public static void Main(string[] args)
         {
@@ -37,67 +44,24 @@ namespace Mod.Localizer
 
             Logger.Debug($"{typeof(Program).Namespace} started. (v{typeof(Program).Assembly.GetName().Version})");
 
-            var app = new CommandLineApplication(false)
+            if (ParseCliArguments(args))
             {
-                FullName = typeof(Program).Namespace,
-                ShortVersionGetter = () => typeof(Program).Assembly.GetName().Version.ToString(2),
-                LongVersionGetter = () => typeof(Program).Assembly.GetName().Version.ToString(3)
-            };
+                Process();
 
-            var version = typeof(Program).Assembly.GetName().Version;
-            app.HelpOption("--help | -h");
-            app.VersionOption("-v | --version", version.ToString(2), version.ToString(3));
-
-            var pathArgument = app.Argument(Strings.PathArgumentName, Strings.PathDesc);
-            var modeOption = app.Option("-m | --mode", Strings.ProgramModeDesc, CommandOptionType.SingleValue);
-            var folderOption = app.Option("-f | --folder", Strings.SourceFolderDesc, CommandOptionType.SingleValue);
-            var languageOption = app.Option("-l | --language", Strings.LanguageDesc, CommandOptionType.SingleValue);
-
-            var dump = true;
-            string folder = null, path, language = "Chinese";
-
-            app.OnExecute(() =>
-            {
-                if (modeOption.HasValue())
-                {
-                    dump = !string.Equals(modeOption.Value(), "patch", StringComparison.OrdinalIgnoreCase);
-                }
-
-                if (folderOption.HasValue())
-                {
-                    folder = folderOption.Value();
-                }
-
-                if (languageOption.HasValue())
-                {
-                    language = languageOption.Value();
-                }
-
-                path = pathArgument.Value;
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    Logger.Error(Strings.NoFileSpecified);
-                    Environment.Exit(1);
-                }
-
-                if (!dump && string.IsNullOrWhiteSpace(folder))
-                {
-                    Logger.Error(Strings.NoSourceFolderSpecified);
-                    Environment.Exit(1);
-                }
-
-                return 0;
-            });
-
-            app.Execute(args);
-
-            Test();
+                Logger.Info(Strings.ProcessComplete);
+            }
 
 #if DEBUG
             Console.ReadLine();
 #endif
         }
 
+        private static void Process()
+        {
+            Test();
+        }
+
+        [Conditional("DEBUG")]
         private static void Test()
         {
             var wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
@@ -106,12 +70,90 @@ namespace Mod.Localizer
             var assembly = AssemblyDef.Load(mod.GetMainAssembly());
             var module = assembly.Modules.Single();
 
-            var contents = new ItemProcessor(mod, module).DumpContents();
-            foreach (var content in contents)
+            var processors = typeof(Program).Assembly.GetTypes().Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
+            foreach (var processor in processors)
             {
-                Console.WriteLine(content.Name);
-                Console.WriteLine(content.ToolTip);
+                try
+                {
+                    var proc = Activator.CreateInstance(processor, mod, module);
+
+                    var contents = (IReadOnlyList<Content>) processor.GetMethod(nameof(Processor<Content>.DumpContents)).Invoke(proc, new object[0]);
+
+                    Logger.Debug("Using " + processor.Name);
+
+                    foreach (var content in contents)
+                    {
+                        Logger.Debug(content.ToString);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Unhandled exception");
+                    Logger.Error(ex);
+                }
             }
+        }
+
+        private static bool ParseCliArguments(string[] args)
+        {
+            var appVersion = typeof(Program).Assembly.GetName().Version;
+
+            var app = new CommandLineApplication(false)
+            {
+                Name = typeof(Program).Namespace,
+                FullName = typeof(Program).Namespace,
+                ShortVersionGetter = () => appVersion.ToString(2),
+                LongVersionGetter = () => appVersion.ToString(3)
+            };
+
+            app.HelpOption("--help | -h");
+            app.VersionOption("-v | --version", appVersion.ToString(2), appVersion.ToString(3));
+
+            var modeOpt = app.Option("-m | --mode", Strings.ProgramModeDesc, CommandOptionType.SingleValue);
+            var srcOpt = app.Option("-f | --folder", Strings.SourceFolderDesc, CommandOptionType.SingleValue);
+            var langOpt = app.Option("-l | --language", Strings.LanguageDesc, CommandOptionType.SingleValue);
+
+            var modFilePathArg = app.Argument(Strings.PathArgumentName, Strings.PathDesc);
+
+            app.OnExecute(() =>
+            {
+                if (modeOpt.HasValue())
+                {
+                    _dump = !string.Equals(modeOpt.Value(), "patch", StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (srcOpt.HasValue())
+                {
+                    _sourcePath = srcOpt.Value();
+                }
+
+                if (langOpt.HasValue())
+                {
+                    _language = langOpt.Value();
+                }
+
+                _modFilePath = modFilePathArg.Value;
+
+                return 0;
+            });
+
+            app.Execute(args);
+
+            // validate arguments
+            if (string.IsNullOrWhiteSpace(_modFilePath))
+            {
+                Logger.Error(Strings.NoFileSpecified);
+                return false;
+            }
+
+            // ReSharper disable once InvertIf
+            if (string.IsNullOrWhiteSpace(_sourcePath) && !_dump)
+            {
+                Logger.Error(Strings.NoSourceFolderSpecified);
+                return false;
+            }
+
+            return true;
         }
 
         private static void ConfigureLogger()

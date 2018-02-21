@@ -14,12 +14,14 @@ namespace Mod.Localizer.ContentProcessor
 
         protected readonly ModuleDef ModModule;
 
-        protected readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        protected readonly Logger Logger;
 
         protected Processor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule)
         {
             ModFile = modFile ?? throw new ArgumentNullException(nameof(modFile));
             ModModule = modModule ?? throw new ArgumentNullException(nameof(modModule));
+
+            Logger = LogManager.GetLogger("Proc." + GetType().Name);
         }
 
         public virtual IReadOnlyList<T> DumpContents()
@@ -69,9 +71,15 @@ namespace Mod.Localizer.ContentProcessor
             }
         }
 
-        protected abstract T DumpContent(TypeDef type);
+        protected virtual T DumpContent(TypeDef type)
+        {
+            throw new NotImplementedException();
+        }
 
-        protected abstract void PatchContent(TypeDef type, T content);
+        protected virtual void PatchContent(TypeDef type, T content)
+        {
+            throw new NotImplementedException();
+        }
 
         protected virtual bool Selector(TypeDef type)
         {
