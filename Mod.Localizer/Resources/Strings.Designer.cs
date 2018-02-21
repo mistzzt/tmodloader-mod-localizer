@@ -142,6 +142,15 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value cannot be null or whitespace..
+        /// </summary>
+        internal static string ProcessTargetNullCheck {
+            get {
+                return ResourceManager.GetString("ProcessTargetNullCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set program mode: DUMP mod content or PATCH content to mod.
         /// </summary>
         internal static string ProgramModeDesc {

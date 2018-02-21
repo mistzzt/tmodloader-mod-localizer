@@ -1,4 +1,5 @@
-﻿using dnlib.DotNet;
+﻿using System;
+using dnlib.DotNet;
 using Newtonsoft.Json;
 
 namespace Mod.Localizer.ContentFramework

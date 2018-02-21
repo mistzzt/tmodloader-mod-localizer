@@ -150,4 +150,7 @@
   <data name="ProcessComplete" xml:space="preserve">
     <value>All operations were successfully finished.</value>
   </data>
+  <data name="ProcessTargetNullCheck" xml:space="preserve">
+    <value>Value cannot be null or whitespace.</value>
+  </data>
 </root>

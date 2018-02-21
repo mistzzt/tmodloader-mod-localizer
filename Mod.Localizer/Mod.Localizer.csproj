@@ -59,6 +59,9 @@
     <Compile Include="ContentProcessor\DebugProcessor.cs" />
     <Compile Include="ContentProcessor\ItemProcessor.cs" />
     <Compile Include="ContentProcessor\Processor.cs" />
+    <Compile Include="ContentProcessor\ProcessTargetAttribute.cs" />
+    <Compile Include="Extensions\CilBody.Extensions.cs" />
+    <Compile Include="Extensions\IMethodDefOrRef.Extensions.cs" />
     <Compile Include="Extensions\TypeDef.Extensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

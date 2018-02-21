@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Extensions.CommandLineUtils;
 using NLog;
@@ -7,9 +6,7 @@ using NLog.Config;
 using NLog.Targets;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using dnlib.DotNet;
-using Mod.Localizer.ContentFramework;
 using Mod.Localizer.ContentProcessor;
 using Mod.Localizer.Resources;
 
@@ -70,14 +67,26 @@ namespace Mod.Localizer
             var assembly = AssemblyDef.Load(mod.GetMainAssembly());
             var module = assembly.Modules.Single();
 
-            var processors = typeof(Program).Assembly.GetTypes().Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
+            var processor = new ItemProcessor(mod, module);
+
+            var contents = processor.DumpContents();
+
+            foreach (var content in contents.Where(t=>t.ModifyTooltips.Count > 0))
+            {
+                Logger.Debug(content.ToString);
+            }
+
+#if FALSE
+            var processors =
+ typeof(Program).Assembly.GetTypes().Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
             foreach (var processor in processors)
             {
                 try
                 {
                     var proc = Activator.CreateInstance(processor, mod, module);
 
-                    var contents = (IReadOnlyList<Content>) processor.GetMethod(nameof(Processor<Content>.DumpContents)).Invoke(proc, new object[0]);
+                    var contents =
+ (IReadOnlyList<Content>)processor.GetMethod(nameof(Processor<Content>.DumpContents)).Invoke(proc, new object[0]);
 
                     Logger.Debug("Using " + processor.Name);
 
@@ -92,6 +101,7 @@ namespace Mod.Localizer
                     Logger.Error(ex);
                 }
             }
+#endif
         }
 
         private static bool ParseCliArguments(string[] args)
