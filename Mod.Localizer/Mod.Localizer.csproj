@@ -56,13 +56,20 @@
   <ItemGroup>
     <Compile Include="ContentFramework\Content.cs" />
     <Compile Include="ContentFramework\ItemContent.cs" />
+    <Compile Include="ContentProcessor\TargetInstructionArray.cs" />
     <Compile Include="ContentProcessor\DebugProcessor.cs" />
     <Compile Include="ContentProcessor\ItemProcessor.cs" />
     <Compile Include="ContentProcessor\Processor.cs" />
     <Compile Include="ContentProcessor\ProcessTargetAttribute.cs" />
+    <Compile Include="Emit\AddTranslationEmitter.cs" />
+    <Compile Include="Emit\Emitter.cs" />
+    <Compile Include="Emit\LiteralEmitter.cs" />
+    <Compile Include="Emit\Provider\ITranslationBaseProvider.cs" />
+    <Compile Include="Emit\Provider\HardCodedTranslationProvider.cs" />
     <Compile Include="Extensions\CilBody.Extensions.cs" />
     <Compile Include="Extensions\IMethodDefOrRef.Extensions.cs" />
     <Compile Include="Extensions\TypeDef.Extensions.cs" />
+    <Compile Include="GameCultures.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Strings.Designer.cs">

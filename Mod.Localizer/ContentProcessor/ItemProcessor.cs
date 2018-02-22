@@ -16,7 +16,7 @@ namespace Mod.Localizer.ContentProcessor
 
         protected override bool Selector(TypeDef type)
         {
-            return type.HasBaseType("Terraria.ModLoader.ModItem");
+            return type.HasBaseType(typeof(ModItem).FullName);
         }
 
         [ProcessTarget(nameof(ModItem.SetStaticDefaults), nameof(ItemContent.Name), nameof(ItemContent.ToolTip))]

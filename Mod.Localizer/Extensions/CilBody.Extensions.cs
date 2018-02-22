@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 
@@ -135,6 +136,39 @@ namespace Mod.Localizer.Extensions
             }
 
             return ldstrs;
+        }
+
+        /// <summary>
+        /// Inserts a group of instructions into the method as the arbitrary last.
+        /// </summary>
+        public static void AppendLast(this CilBody body, IEnumerable<Instruction> instructions)
+        {
+            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (instructions == null) throw new ArgumentNullException(nameof(instructions));
+
+            var ret = body.Instructions.Last();
+            if (ret == null || ret.OpCode != OpCodes.Ret)
+            {
+                throw new ArgumentOutOfRangeException(nameof(body));
+            }
+
+            var list = instructions.ToList();
+            if (!list.Any())
+            {
+                return;
+            }
+
+            var first = list.First();
+            ret.OpCode = first.OpCode;
+            ret.Operand = first.Operand;
+
+            list.Remove(first);
+            list.Add(OpCodes.Ret.ToInstruction());
+
+            foreach (var instruction in list)
+            {
+                body.Instructions.Add(instruction);
+            }
         }
     }
 }

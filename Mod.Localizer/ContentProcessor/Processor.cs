@@ -125,7 +125,53 @@ namespace Mod.Localizer.ContentProcessor
 
         protected virtual void PatchContent(TypeDef type, T content)
         {
-            throw new NotImplementedException();
+            foreach (var kvp in InstructionSelectors)
+            {
+                var properties = kvp.Value.GetCustomAttribute<ProcessTargetAttribute>();
+
+                var methodDef = type.FindMethod(kvp.Key);
+                if (methodDef?.HasBody != true)
+                {
+                    continue;
+                }
+                
+                var result = (Instruction[])kvp.Value.Invoke(this, new object[] { methodDef });
+                if (result.Length == 0)
+                {
+                    continue;
+                }
+
+                for (var index = 0; index < properties.Value.Length; index++)
+                {
+                    // both empty array and array with null elements are allowed
+                    if (result[index] == null)
+                    {
+                        continue;
+                    }
+
+                    var prop = typeof(T).GetProperty(properties.Value[index]);
+                    if (prop == null)
+                    {
+                        throw new NotSupportedException();
+                    }
+
+                    if (prop.PropertyType == typeof(string))
+                    {
+                        result[index].Operand = prop.GetValue(content);
+                    }
+                    else
+                    {
+                        // expected to be the last key
+                        var list = (IList<string>)prop.GetValue(content);
+                        for (int i = index, listIndex = 0; i < result.Length; i++, listIndex++)
+                        {
+                            result[i].Operand = list[listIndex];
+                        }
+
+                        break;
+                    }
+                }
+            }
         }
 
         protected virtual bool Selector(TypeDef type)
