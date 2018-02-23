@@ -15,5 +15,7 @@ namespace Mod.Localizer.Emit.Provider
         string CreateTranslation(string source, string value);
 
         void AddTranslation(string key, string value);
+
+        string ToGameLocalizationKey(string modTranslationKey);
     }
 }

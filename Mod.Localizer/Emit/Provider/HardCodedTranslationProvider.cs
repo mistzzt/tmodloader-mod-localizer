@@ -176,6 +176,9 @@ namespace Mod.Localizer.Emit.Provider
 
             InitializeTranslationMethod.Body.AppendLast(new[]
             {
+                // for navigation when adds translation
+                OpCodes.Nop.ToInstruction(),
+                
                 // create translation with mod name as key
                 // to avoid name conflict between mods
                 OpCodes.Ldarg_0.ToInstruction(),
@@ -194,14 +197,47 @@ namespace Mod.Localizer.Emit.Provider
                 OpCodes.Call.ToInstruction(AddGlobalTranslationMethod)
             });
 
-            // translation implementation in tModLoader:
-            // Mods.<ModName>.<Key>
-            return string.Format("Mods.{0}.{1}", _modFile.Name, key);
+            return key;
         }
 
         public void AddTranslation(string key, string value)
         {
-            throw new NotImplementedException();
+            var instructions = InitializeTranslationMethod.Body.Instructions;
+
+            var target = instructions
+                .SingleOrDefault(x => x.OpCode == OpCodes.Ldstr &&
+                                      string.Equals(key, (string)x.Operand, StringComparison.Ordinal));
+
+            if (target == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(key));
+            }
+
+            var nopIndex = InitializeTranslationMethod.Body.Next(
+                    instructions.IndexOf(target),
+                    x => x.OpCode == OpCodes.Nop);
+
+            // the last instance object in the method
+            if (nopIndex == -1)
+            {
+                nopIndex = instructions.Count - 1;
+            }
+
+            instructions.Insert(nopIndex, new[]
+            {
+                OpCodes.Ldloc_0.ToInstruction(),
+                OpCodes.Ldsfld.ToInstruction(GameCultureField),
+                OpCodes.Ldstr.ToInstruction(value),
+
+                OpCodes.Call.ToInstruction(AddTranslationMethod)
+            });
+        }
+
+        public string ToGameLocalizationKey(string modTranslationKey)
+        {
+            // translation implementation in tModLoader:
+            // Mods.<ModName>.<Key>
+            return $"Mods.{_modFile.Name}.{modTranslationKey}";
         }
     }
 }
