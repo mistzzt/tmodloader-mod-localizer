@@ -22,7 +22,8 @@ namespace Mod.Localizer.ContentProcessor
         public TargetInstruction[] SetDefault(MethodDef method)
         {
             foreach (var instruction in method.Body.Instructions.Where(
-                i => i.Operand is IMethodDefOrRef m && m.IsMethod("ModTranslation", "SetDefault")))
+                i => i.Operand is IMethodDefOrRef m && 
+                     m.IsMethod(nameof(ModTranslation), nameof(ModTranslation.SetDefault))))
             {
                 var source = method.Body.FindObjectInstance(instruction);
                 var value = method.Body.FindStringLiteralBefore(instruction);
