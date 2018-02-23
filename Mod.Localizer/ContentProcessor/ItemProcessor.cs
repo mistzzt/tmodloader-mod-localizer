@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
@@ -94,7 +95,9 @@ namespace Mod.Localizer.ContentProcessor
                 {
                     result.Add(new TargetInstruction(ins));
                 }
-                else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat"))
+                else if (ins.OpCode.Equals(OpCodes.Call) &&
+                         ins.Operand is MemberRef n &&
+                         string.Equals(n.Name, nameof(string.Concat), StringComparison.Ordinal))
                 {
                     var list = method.Body.FindStringLiteralsOf(ins);
 
