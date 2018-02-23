@@ -20,9 +20,9 @@ namespace Mod.Localizer.ContentProcessor
         }
 
         [ProcessTarget(nameof(ModItem.SetStaticDefaults), nameof(ItemContent.Name), nameof(ItemContent.ToolTip))]
-        public Instruction[] BasicInformation(MethodDef method)
+        public TargetInstruction[] BasicInformation(MethodDef method)
         {
-            var insts = new Instruction[2];
+            var insts = new TargetInstruction[2];
 
             foreach (var instruction in method.Body.Instructions.Where(
                 i => i.Operand is IMethodDefOrRef m && m.IsMethod("ModTranslation", "SetDefault")))
@@ -37,10 +37,18 @@ namespace Mod.Localizer.ContentProcessor
                 switch (((IMethodDefOrRef)source.Operand).Name)
                 {
                     case "get_Tooltip":
-                        insts[1] = value;
+                        insts[1] = new TargetInstruction
+                        {
+                            ReplaceTarget = source,
+                            Value = value
+                        };
                         break;
                     case "get_DisplayName":
-                        insts[0] = value;
+                        insts[0] = new TargetInstruction
+                        {
+                            ReplaceTarget = source,
+                            Value = value
+                        };
                         break;
                 }
             }
@@ -49,7 +57,7 @@ namespace Mod.Localizer.ContentProcessor
         }
 
         [ProcessTarget(nameof(ModItem.UpdateArmorSet), nameof(ItemContent.SetBonus))]
-        public Instruction[] BonusText(MethodDef method)
+        public TargetInstruction[] BonusText(MethodDef method)
         {
             foreach (var instruction in method.Body.Instructions.Where(i => i.OpCode == OpCodes.Stfld))
             {
@@ -58,17 +66,17 @@ namespace Mod.Localizer.ContentProcessor
                 switch (((IMemberRef)instruction.Operand).Name)
                 {
                     case "setBonus":
-                        return new[] { ldstr };
+                        return new[] { new TargetInstruction(ldstr) };
                 }
             }
 
-            return new Instruction[0];
+            return new TargetInstruction[0];
         }
 
         [ProcessTarget(nameof(ModItem.ModifyTooltips), nameof(ItemContent.ModifyTooltips))]
-        public Instruction[] ModifyTooltips(MethodDef method)
+        public TargetInstruction[] ModifyTooltips(MethodDef method)
         {
-            var result = new List<Instruction>();
+            var result = new List<TargetInstruction>();
 
             var inst = method.Body.Instructions;
 
@@ -83,14 +91,14 @@ namespace Mod.Localizer.ContentProcessor
 
                 if (ins.OpCode.Equals(OpCodes.Ldstr))
                 {
-                    result.Add(ins);
+                    result.Add(new TargetInstruction(ins));
                 }
                 else if (ins.OpCode.Equals(OpCodes.Call) && ins.Operand is MemberRef n && n.Name.Equals("Concat"))
                 {
                     var list = method.Body.FindStringLiteralsOf(ins);
 
                     // the list given above is in reverse order
-                    result.AddRange(list.Reverse());
+                    result.AddRange(list.Select(x => new TargetInstruction(x)).Reverse());
                 }
             }
 

@@ -5,6 +5,8 @@ using System.Reflection;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using Mod.Localizer.ContentFramework;
+using Mod.Localizer.Emit;
+using Mod.Localizer.Emit.Provider;
 using Mod.Localizer.Resources;
 using NLog;
 
@@ -12,12 +14,10 @@ namespace Mod.Localizer.ContentProcessor
 {
     public abstract class Processor<T> where T : Content
     {
-        protected readonly TmodFileWrapper.ITmodFile ModFile;
-
-        protected readonly ModuleDef ModModule;
-
         protected readonly Logger Logger;
-
+        protected readonly ModuleDef ModModule;
+        protected readonly TmodFileWrapper.ITmodFile ModFile;
+        protected readonly ITranslationBaseProvider Provider;
         protected readonly IDictionary<string, MethodInfo> InstructionSelectors;
 
         protected Processor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule)
@@ -28,6 +28,8 @@ namespace Mod.Localizer.ContentProcessor
             Logger = LogManager.GetLogger("Proc." + GetType().Name);
 
             InstructionSelectors = new Dictionary<string, MethodInfo>();
+
+            Provider = new HardCodedTranslationProvider(modFile, modModule, GameCultures.Chinese);
 
             InitializeInstructionSelectors();
         }
@@ -75,48 +77,48 @@ namespace Mod.Localizer.ContentProcessor
                 var properties = kvp.Value.GetCustomAttribute<ProcessTargetAttribute>();
 
                 var methodDef = type.FindMethod(kvp.Key);
-                if (methodDef?.HasBody == true)
+                if (methodDef?.HasBody != true)
                 {
-                    var result = (Instruction[])kvp.Value.Invoke(this, new object[] { methodDef });
-                    if (result.Length == 0)
+                    // not every target type has all possible properties to be translated
+                    continue;
+                }
+
+                // skip empty array
+                var result = (TargetInstruction[])kvp.Value.Invoke(this, new object[] { methodDef });
+                if (result.Length == 0)
+                {
+                    continue;
+                }
+
+                for (var index = 0; index < properties.Value.Length; index++)
+                {
+                    // skip null element
+                    if (result[index].Value == null)
                     {
                         continue;
                     }
 
-                    for (var index = 0; index < properties.Value.Length; index++)
+                    var prop = typeof(T).GetProperty(properties.Value[index]);
+                    if (prop == null)
                     {
-                        // both empty array and array with null elements are allowed
-                        if (result[index] == null)
-                        {
-                            continue;
-                        }
-
-                        var prop = typeof(T).GetProperty(properties.Value[index]);
-                        if (prop == null)
-                        {
-                            throw new NotSupportedException();
-                        }
-
-                        if (prop.PropertyType == typeof(string))
-                        {
-                            prop.SetValue(content, (string)result[index].Operand ?? string.Empty);
-                        }
-                        else
-                        {
-                            // expected to be the last key
-                            var list = (IList<string>)prop.GetValue(content);
-                            for (var i = index; i < result.Length; i++)
-                            {
-                                list.Add((string)result[i].Operand);
-                            }
-
-                            break;
-                        }
+                        throw new NotSupportedException();
                     }
-                }
-                else
-                {
-                    Logger.Debug("Cannot find method: " + type.FullName + "::" + kvp.Key);
+
+                    if (prop.PropertyType == typeof(string))
+                    {
+                        prop.SetValue(content, (string)result[index].Value.Operand ?? string.Empty);
+                    }
+                    else
+                    {
+                        // expected to be the last key
+                        var list = (IList<string>)prop.GetValue(content);
+                        for (var i = index; i < result.Length; i++)
+                        {
+                            list.Add((string)result[i].Value.Operand);
+                        }
+
+                        break;
+                    }
                 }
             }
 
@@ -132,10 +134,14 @@ namespace Mod.Localizer.ContentProcessor
                 var methodDef = type.FindMethod(kvp.Key);
                 if (methodDef?.HasBody != true)
                 {
+                    // not every target type has all possible properties to be translated
                     continue;
                 }
-                
-                var result = (Instruction[])kvp.Value.Invoke(this, new object[] { methodDef });
+
+                var emitters = Emitter.LoadEmitters(methodDef, Provider);
+
+                // skip empty array
+                var result = (TargetInstruction[])kvp.Value.Invoke(this, new object[] { methodDef });
                 if (result.Length == 0)
                 {
                     continue;
@@ -143,8 +149,8 @@ namespace Mod.Localizer.ContentProcessor
 
                 for (var index = 0; index < properties.Value.Length; index++)
                 {
-                    // both empty array and array with null elements are allowed
-                    if (result[index] == null)
+                    // skip null element
+                    if (result[index].ReplaceTarget == null)
                     {
                         continue;
                     }
@@ -157,7 +163,7 @@ namespace Mod.Localizer.ContentProcessor
 
                     if (prop.PropertyType == typeof(string))
                     {
-                        result[index].Operand = prop.GetValue(content);
+                        Patch(result[index].ReplaceTarget, (string)prop.GetValue(content), emitters);
                     }
                     else
                     {
@@ -165,12 +171,23 @@ namespace Mod.Localizer.ContentProcessor
                         var list = (IList<string>)prop.GetValue(content);
                         for (int i = index, listIndex = 0; i < result.Length; i++, listIndex++)
                         {
-                            result[i].Operand = list[listIndex];
+                            Patch(result[i].ReplaceTarget, list[listIndex], emitters);
                         }
 
                         break;
                     }
                 }
+            }
+
+            void Patch(Instruction instruction, string value, IReadOnlyList<Emitter> emitters)
+            {
+                var emitter = emitters.FirstOrDefault(x => x.IsTarget(instruction));
+                if (emitter == null)
+                {
+                    return;
+                }
+
+                emitter.Emit(instruction, value);
             }
         }
 
@@ -185,7 +202,7 @@ namespace Mod.Localizer.ContentProcessor
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 .Where(
                     x => !x.IsAbstract &&
-                          x.ReturnType == typeof(Instruction[]) &&
+                          x.ReturnType == typeof(TargetInstruction[]) &&
                           x.GetCustomAttribute<ProcessTargetAttribute>() != null);
 
             foreach (var method in methods)
