@@ -8,6 +8,8 @@ namespace Mod.Localizer.Emit.Provider
 
         MemberRef AddTranslationMethod { get; }
 
+        MemberRef GetTextValueMethod { get; }
+
         TypeRef ModTranslationType { get; }
 
         string CreateTranslation(string source, string value);

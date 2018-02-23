@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using Mod.Localizer.Emit.Provider;
@@ -20,5 +22,12 @@ namespace Mod.Localizer.Emit
         public abstract void Emit(Instruction target, string value);
 
         public abstract bool IsTarget(Instruction instruction);
+
+        public static IReadOnlyList<Emitter> LoadEmitters(MethodDef method, ITranslationBaseProvider provider)
+        {
+            var types = typeof(Emitter).Assembly.GetTypes().Where(x => x.BaseType == typeof(Emitter));
+
+            return types.Select(type => (Emitter)Activator.CreateInstance(type, method, provider)).ToList();
+        }
     }
 }

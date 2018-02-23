@@ -1,4 +1,5 @@
-﻿using dnlib.DotNet;
+﻿using System;
+using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using Mod.Localizer.Emit.Provider;
 using Mod.Localizer.Extensions;
@@ -13,10 +14,15 @@ namespace Mod.Localizer.Emit
 
         public override void Emit(Instruction target, string value)
         {
+            if (target.Operand == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(target));
+            }
+
             Method.Body.AppendLast(new[]
             {
                 OpCodes.Ldarg_0.ToInstruction(),
-                OpCodes.Call.ToInstruction(target.Operand as IMethodDefOrRef),
+                OpCodes.Call.ToInstruction((IMethodDefOrRef) target.Operand),
                 OpCodes.Ldsfld.ToInstruction(Provider.GameCultureField),
                 OpCodes.Ldstr.ToInstruction(value),
                 OpCodes.Callvirt.ToInstruction(Provider.AddTranslationMethod)
@@ -34,7 +40,7 @@ namespace Mod.Localizer.Emit
 
             // check method return type
             var retType = ((IMethodDefOrRef)instruction.Operand).MethodSig.RetType;
-            return retType.TryGetTypeRef() == Provider.ModTranslationType;
+            return string.Equals(retType.FullName, Provider.ModTranslationType.FullName, StringComparison.Ordinal);
         }
     }
 }
