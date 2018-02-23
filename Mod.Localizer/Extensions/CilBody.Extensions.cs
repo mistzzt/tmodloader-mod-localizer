@@ -170,5 +170,31 @@ namespace Mod.Localizer.Extensions
                 body.Instructions.Add(instruction);
             }
         }
+
+        public static int Next(this CilBody body, int index, Predicate<Instruction> predicate)
+        {
+            if (index < 0 || index >= body.Instructions.Count)
+            {
+                return -1;
+            }
+
+            for (; index < body.Instructions.Count; index++)
+            {
+                if (predicate(body.Instructions[index]))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        public static void Insert(this IList<Instruction> inst, int index, IEnumerable<Instruction> instructions)
+        {
+            foreach (var instruction in instructions.Reverse())
+            {
+                inst.Insert(index, instruction);
+            }
+        }
     }
 }

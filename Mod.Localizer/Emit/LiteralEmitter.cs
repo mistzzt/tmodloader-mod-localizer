@@ -17,7 +17,10 @@ namespace Mod.Localizer.Emit
 
             // first replace the string literal to translation key
             var key = Provider.CreateTranslation(Method.DeclaringType.Name, (string)target.Operand);
-            target.Operand = key;
+            target.Operand = Provider.ToGameLocalizationKey(key);
+
+            // set translated value
+            Provider.AddTranslation(key, value);
 
             // insert the static method call right after the target instruction
             var index = Method.Body.Instructions.IndexOf(target);
