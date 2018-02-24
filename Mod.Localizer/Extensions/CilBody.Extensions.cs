@@ -28,9 +28,8 @@ namespace Mod.Localizer.Extensions
             {
                 var instruction = instructions[index];
 
-                if (instruction.OpCode == OpCodes.Call)
+                if (instruction.OpCode == OpCodes.Call && instruction.Operand is IMethodDefOrRef method)
                 {
-                    var method = (IMethodDefOrRef)instruction.Operand;
                     if (method.MethodSig.RetType.ToTypeDefOrRef() == type)
                     {
                         return instruction;
@@ -78,7 +77,28 @@ namespace Mod.Localizer.Extensions
 
             var instructions = body.Instructions;
 
-            for (var index = instructions.IndexOf(target); index > 0; index--)
+            for (var index = instructions.IndexOf(target) - 1; index > 0; index--)
+            {
+                var instruction = instructions[index];
+
+                // only find string literal now
+                if (instruction.OpCode == OpCodes.Ldstr)
+                {
+                    return instruction;
+                }
+            }
+
+            return null;
+        }
+
+        public static Instruction FindStringLiteralAfter(this CilBody body, Instruction target)
+        {
+            if (body == null) throw new ArgumentNullException(nameof(body));
+            if (target == null) throw new ArgumentNullException(nameof(target));
+
+            var instructions = body.Instructions;
+
+            for (var index = instructions.IndexOf(target) + 1; index < instructions.Count; index++)
             {
                 var instruction = instructions[index];
 
