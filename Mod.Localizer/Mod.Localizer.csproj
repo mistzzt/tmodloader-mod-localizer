@@ -59,9 +59,11 @@
     <Compile Include="ContentFramework\ItemContent.cs" />
     <Compile Include="ContentFramework\MiscContent.cs" />
     <Compile Include="ContentFramework\NpcContent.cs" />
+    <Compile Include="ContentFramework\TileContent.cs" />
     <Compile Include="ContentProcessor\BuffProcessor.cs" />
     <Compile Include="ContentProcessor\MiscTextProcessor.cs" />
     <Compile Include="ContentProcessor\NpcProcessor.cs" />
+    <Compile Include="ContentProcessor\TileProcessor.cs" />
     <Compile Include="TargetInstruction.cs" />
     <Compile Include="ContentProcessor\DebugProcessor.cs" />
     <Compile Include="ContentProcessor\ItemProcessor.cs" />
