@@ -29,7 +29,7 @@ namespace Mod.Localizer.ContentProcessor
 
             InstructionSelectors = new Dictionary<string, MethodInfo>();
 
-            Provider = new HardCodedTranslationProvider(modFile, modModule, GameCultures.Chinese);
+            Provider = new HardCodedTranslationProvider(modFile, modModule, culture);
 
             InitializeInstructionSelectors();
         }
