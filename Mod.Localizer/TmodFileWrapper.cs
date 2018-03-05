@@ -35,17 +35,19 @@ namespace Mod.Localizer
             public const string GetVersion = "get_version";
             public const string SetVersion = "set_version";
 
-            public const string Path = "path";
+            public const string Path = nameof(Terraria.ModLoader.IO.TmodFile.path);
             public const string ReadException = "readException";
             public const string Files = "files";
 
-            public const string HasFile = nameof(HasFile);
-            public const string GetFile = nameof(GetFile);
+            public const string HasFile = nameof(Terraria.ModLoader.IO.TmodFile.HasFile);
+            public const string GetFile = nameof(Terraria.ModLoader.IO.TmodFile.GetFile);
+            public const string GetMainAssembly = nameof(Terraria.ModLoader.IO.TmodFile.GetMainAssembly);
+            public const string GetMainPdb = nameof(Terraria.ModLoader.IO.TmodFile.GetMainPDB);
+
             public const string AddFile = nameof(AddFile);
             public const string RemoveFile = nameof(RemoveFile);
             public const string Read = nameof(Read);
-            public const string GetMainAssembly = nameof(GetMainAssembly);
-            public const string GetMainPdb = "GetMainPDB";
+            public const string Save = nameof(Save);
 
             private readonly ConstructorInfo _ctor;
 
@@ -80,6 +82,7 @@ namespace Mod.Localizer
                     AddFile,
                     RemoveFile,
                     Read,
+                    Save,
                     GetMainAssembly,
                     GetMainPdb,
 
@@ -140,6 +143,21 @@ namespace Mod.Localizer
                 return (T)_fields[field].GetValue(instance);
             }
 
+            public void SetFieldValue<T>(object instance, string field, T value)
+            {
+                if (instance?.GetType() != _modFileType)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(instance));
+                }
+
+                if (!_fields.ContainsKey(field))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(field));
+                }
+
+                _fields[field].SetValue(instance, value);
+            }
+
             public T InvokeMethod<T>(object instance, string method, params object[] parameters)
             {
                 if (instance?.GetType() != _modFileType)
@@ -156,12 +174,12 @@ namespace Mod.Localizer
             }
 
             [Obsolete("would be replaced on newer tModLoader possibly")]
-            public object CreateHandler(MethodInfo method)
+            public object CreateHandler(MethodInfo method, object instance)
             {
                 const string handlerTypeName = "ReadStreamingAsset";
 
                 var type = _modFileType.GetNestedType(handlerTypeName, BindingFlags.NonPublic);
-                return Delegate.CreateDelegate(type, method);
+                return Delegate.CreateDelegate(type, instance, method);
             }
         }
 
@@ -226,7 +244,7 @@ namespace Mod.Localizer
             public void Read()
             {
 #pragma warning disable CS0618 // Type or member is obsolete
-                var handler = _impl.CreateHandler(GetType().GetMethod(nameof(ReadStreamingHandler)));
+                var handler = _impl.CreateHandler(GetType().GetMethod(nameof(ReadStreamingHandler)), this);
 #pragma warning restore CS0618 // Type or member is obsolete
 
                 // invoke TmodFile.Read() with state and handler
@@ -247,23 +265,32 @@ namespace Mod.Localizer
 
             public void Save()
             {
-                throw new NotImplementedException();
+                _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.Save);
             }
 
             public void Write(string path)
             {
-                throw new NotImplementedException();
+                // to alter the `path` field, save it first
+                var originPath = Path;
+
+                // invoke save method
+                _impl.SetFieldValue(_modFile, TmodFileImplementation.Path, path);
+                Save();
+
+                // recover its original value
+                _impl.SetFieldValue(_modFile, TmodFileImplementation.Path, originPath);
             }
 
             // ReSharper disable MemberCanBePrivate.Local
-            // ReSharper disable UnusedParameter.Local
 
             /// <summary>
-            /// Serves as the non-null 2nd argument for <code>TmodFile.Read()</code>
+            /// Loads resources files into memory
             /// </summary>
-            public static void ReadStreamingHandler(string path, int len, BinaryReader reader) { }
+            public void ReadStreamingHandler(string path, int len, BinaryReader reader)
+            {
+                Files[path] = reader.ReadBytes(len);
+            }
 
-            // ReSharper restore UnusedParameter.Local
             // ReSharper restore MemberCanBePrivate.Local
         }
 
