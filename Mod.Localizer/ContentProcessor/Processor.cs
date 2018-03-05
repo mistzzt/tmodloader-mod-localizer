@@ -20,7 +20,7 @@ namespace Mod.Localizer.ContentProcessor
         protected readonly ITranslationBaseProvider Provider;
         protected readonly IDictionary<string, MethodInfo> InstructionSelectors;
 
-        protected Processor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule)
+        protected Processor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture)
         {
             ModFile = modFile ?? throw new ArgumentNullException(nameof(modFile));
             ModModule = modModule ?? throw new ArgumentNullException(nameof(modModule));

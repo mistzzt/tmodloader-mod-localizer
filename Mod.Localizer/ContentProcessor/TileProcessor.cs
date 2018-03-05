@@ -8,10 +8,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class TileProcessor : Processor<TileContent>
     {
-        public TileProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         protected override bool Selector(TypeDef type)
         {
             return type.HasBaseType(typeof(ModTile).FullName);
@@ -42,6 +38,10 @@ namespace Mod.Localizer.ContentProcessor
             }
 
             return new TargetInstruction[0];
+        }
+
+        public TileProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

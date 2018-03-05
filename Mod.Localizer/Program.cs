@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using Microsoft.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using dnlib.DotNet;
+using Mod.Localizer.ContentFramework;
 using Mod.Localizer.ContentProcessor;
 using Mod.Localizer.Resources;
+using Newtonsoft.Json;
 
 namespace Mod.Localizer
 {
@@ -18,7 +21,79 @@ namespace Mod.Localizer
 
         private static bool _dump = true;
         private static string _modFilePath, _sourcePath;
-        private static string _language = "Chinese";
+        private static GameCultures _language = GameCultures.Chinese;
+
+        private static void Process()
+        {
+            var wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
+            var modFile = wrapper.LoadFile(_modFilePath);
+
+            var processors =
+                typeof(Program)
+                    .Assembly
+                    .GetTypes()
+                    .Where(t => t.BaseType?.IsGenericType == true &&
+                                t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
+
+            Directory.CreateDirectory(modFile.Name);
+            foreach (var folder in DefaultConfigurations.FolderMapper.Values)
+            {
+                Directory.CreateDirectory(modFile.Name + Path.DirectorySeparatorChar + folder);
+            }
+
+            if (_dump)
+            {
+                Dump(modFile, processors);
+            }
+            else
+            {
+                Patch(modFile, processors);
+            }
+        }
+
+        private static void Dump(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors)
+        {
+            var module = AssemblyDef.Load(modFile.GetMainAssembly()).Modules.Single();
+
+            foreach (var processor in processors)
+            {
+                try
+                {
+                    var proc = Activator.CreateInstance(processor, modFile, module, _language);
+
+                    var contents =
+                        (IReadOnlyList<Content>)processor.GetMethod(nameof(Processor<Content>.DumpContents))?.Invoke(proc, new object[0]);
+
+                    if (contents == null)
+                    {
+                        Logger.Warn("Processor {0} not used!", processor.Name);
+                        continue;
+                    }
+
+                    Logger.Debug("Using " + processor.Name);
+
+                    foreach (var val in contents.GroupBy(x => x.Namespace, x => x))
+                    {
+                        File.WriteAllText(
+                            DefaultConfigurations.GetPath(modFile, processor, val.Key + ".json"),
+                            JsonConvert.SerializeObject(val.ToList(), Formatting.Indented)
+                        );
+
+                        Logger.Info("Dumping namespace {0}", val.Key);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Unhandled exception");
+                    Logger.Error(ex);
+                }
+            }
+        }
+
+        private static void Patch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors)
+        {
+
+        }
 
         public static void Main(string[] args)
         {
@@ -50,57 +125,6 @@ namespace Mod.Localizer
 
 #if DEBUG
             Console.ReadLine();
-#endif
-        }
-
-        private static void Process()
-        {
-            Test();
-        }
-
-        [Conditional("DEBUG")]
-        private static void Test()
-        {
-            var wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
-            var mod = wrapper.LoadFile("Test.tmod");
-
-            var assembly = AssemblyDef.Load(mod.GetMainAssembly());
-            var module = assembly.Modules.Single();
-
-            var processor = new ItemProcessor(mod, module);
-
-            var contents = processor.DumpContents();
-
-            foreach (var content in contents.Where(t=>t.ModifyTooltips.Count > 0))
-            {
-                Logger.Debug(content.ToString);
-            }
-
-#if FALSE
-            var processors =
- typeof(Program).Assembly.GetTypes().Where(t => t.BaseType?.IsGenericType == true && t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
-            foreach (var processor in processors)
-            {
-                try
-                {
-                    var proc = Activator.CreateInstance(processor, mod, module);
-
-                    var contents =
- (IReadOnlyList<Content>)processor.GetMethod(nameof(Processor<Content>.DumpContents)).Invoke(proc, new object[0]);
-
-                    Logger.Debug("Using " + processor.Name);
-
-                    foreach (var content in contents)
-                    {
-                        Logger.Debug(content.ToString);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn("Unhandled exception");
-                    Logger.Error(ex);
-                }
-            }
 #endif
         }
 
@@ -139,7 +163,10 @@ namespace Mod.Localizer
 
                 if (langOpt.HasValue())
                 {
-                    _language = langOpt.Value();
+                    if (!Enum.TryParse(langOpt.Value(), out _language))
+                    {
+                        Logger.Error("Invalid game culture!");
+                    }
                 }
 
                 _modFilePath = modFilePathArg.Value;

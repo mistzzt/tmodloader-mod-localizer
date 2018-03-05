@@ -9,10 +9,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class NpcProcessor : Processor<NpcContent>
     {
-        public NpcProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         protected override bool Selector(TypeDef type)
         {
             return type.HasBaseType(typeof(ModNPC).FullName);
@@ -95,6 +91,10 @@ namespace Mod.Localizer.ContentProcessor
                 .Where(x => x.OpCode == OpCodes.Ldstr)
                 .Select(instruction => new TargetInstruction(instruction))
                 .ToArray();
+        }
+
+        public NpcProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

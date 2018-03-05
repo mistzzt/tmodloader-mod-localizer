@@ -7,10 +7,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     internal sealed class DebugProcessor : Processor<Content>
     {
-        public DebugProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         public override IReadOnlyList<Content> DumpContents()
         {
             DumpMainAssembly();
@@ -43,6 +39,10 @@ namespace Mod.Localizer.ContentProcessor
         private void PatchMainAssembly()
         {
             Logger.Debug("Not implemented yet");
+        }
+
+        public DebugProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

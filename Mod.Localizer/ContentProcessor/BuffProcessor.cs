@@ -12,10 +12,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class BuffProcessor : Processor<BuffContent>
     {
-        public BuffProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         protected override bool Selector(TypeDef type)
         {
             return type.HasBaseType(typeof(ModBuff).FullName);
@@ -57,6 +53,10 @@ namespace Mod.Localizer.ContentProcessor
             }
 
             return targets;
+        }
+
+        public BuffProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

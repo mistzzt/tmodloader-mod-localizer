@@ -11,10 +11,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class MiscTextProcessor : Processor<MiscContent>
     {
-        public MiscTextProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         public override void PatchContents(IReadOnlyList<MiscContent> contents)
         {
             foreach (var content in contents)
@@ -116,6 +112,10 @@ namespace Mod.Localizer.ContentProcessor
             }
 
             return miscs;
+        }
+
+        public MiscTextProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

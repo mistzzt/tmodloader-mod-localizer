@@ -11,10 +11,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class ItemProcessor : Processor<ItemContent>
     {
-        public ItemProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         protected override bool Selector(TypeDef type)
         {
             return type.HasBaseType(typeof(ModItem).FullName);
@@ -107,6 +103,10 @@ namespace Mod.Localizer.ContentProcessor
             }
 
             return result.ToArray();
+        }
+
+        public ItemProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }

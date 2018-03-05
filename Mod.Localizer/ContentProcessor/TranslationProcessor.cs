@@ -11,10 +11,6 @@ namespace Mod.Localizer.ContentProcessor
 {
     public sealed class TranslationProcessor : Processor<TranslationContent>
     {
-        public TranslationProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule) : base(modFile, modModule)
-        {
-        }
-
         public override IReadOnlyList<TranslationContent> DumpContents()
         {
             var contents = new List<TranslationContent>();
@@ -81,6 +77,10 @@ namespace Mod.Localizer.ContentProcessor
                     emitter.Emit(stloc, content.Value);
                 }
             }
+        }
+
+        public TranslationProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        {
         }
     }
 }
