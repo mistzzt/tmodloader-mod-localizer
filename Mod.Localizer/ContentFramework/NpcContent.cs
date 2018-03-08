@@ -16,5 +16,7 @@ namespace Mod.Localizer.ContentFramework
         public IList<string> TownNpcNames { get; set; } = new List<string>();
         
         public NpcContent(TypeDef type) : base(type) { }
+
+        public NpcContent() { }
     }
 }

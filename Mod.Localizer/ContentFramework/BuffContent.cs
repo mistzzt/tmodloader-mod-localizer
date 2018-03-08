@@ -8,6 +8,8 @@ namespace Mod.Localizer.ContentFramework
         {
         }
 
+        public BuffContent() { }
+
         public string Name { get; set; } = string.Empty;
 
         public string Tip { get; set; } = string.Empty;

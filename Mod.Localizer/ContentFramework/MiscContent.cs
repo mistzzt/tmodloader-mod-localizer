@@ -9,6 +9,8 @@ namespace Mod.Localizer.ContentFramework
         {
             Method = method.Name;
         }
+
+        public MiscContent() { }
        
         public IList<string> Contents { get; set; } = new List<string>();
 

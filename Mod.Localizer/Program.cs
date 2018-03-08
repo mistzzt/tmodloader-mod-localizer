@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Config;
@@ -21,7 +22,7 @@ namespace Mod.Localizer
 
         private static bool _dump = true;
         private static string _modFilePath, _sourcePath;
-        private static GameCultures _language = GameCultures.Chinese;
+        private static GameCultures _language = DefaultConfigurations.DefaultLanguage;
 
         private static void Process()
         {
@@ -92,7 +93,82 @@ namespace Mod.Localizer
 
         private static void Patch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors)
         {
+            const string mono = "Mono.dll";
 
+            var procs = processors as Type[] ?? processors.ToArray();
+            if (modFile.HasFile(mono))
+            {
+                InnerPatch(modFile, procs, mono);
+            }
+
+            InnerPatch(modFile, procs);
+        }
+
+        private static void InnerPatch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors, string dll = null)
+        {
+            if (string.IsNullOrWhiteSpace(dll))
+            {
+                dll = modFile.HasFile("All.dll") ? "All.dll" : "Windows.dll";
+            }
+
+            var module = AssemblyDef.Load(modFile.GetFile(dll)).Modules.Single();
+            
+            foreach (var processor in processors)
+            {
+                try
+                {
+                    var proc = Activator.CreateInstance(processor, modFile, module, _language);
+                    var tran = LoadFiles(_sourcePath, processor);
+
+                    processor.GetMethod(nameof(Processor<Content>.PatchContents))?.Invoke(proc, new [] {tran});
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn("Unhandled exception");
+                    Logger.Error(ex);
+                }
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                module.Assembly.Write(ms);
+
+                modFile.Files[dll] = ms.ToArray();
+            }
+        }
+
+        private static object LoadFiles(string folder, Type procType)
+        {
+            if (!DefaultConfigurations.FolderMapper.ContainsKey(procType))
+            {
+                return null;
+            }
+
+            Debug.Assert(procType.BaseType != null, "procType.BaseType != null");
+            var contentType = procType.BaseType.GetGenericArguments().Single();
+            var listType = typeof(List<>).MakeGenericType(contentType);
+
+            var doubleListType = typeof(List<>).MakeGenericType(listType);
+
+            var translations = Activator.CreateInstance(doubleListType);
+            var addMethod = doubleListType.GetMethod(nameof(List<object>.Add));
+            
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(folder, DefaultConfigurations.FolderMapper[procType]), "*.json"))
+            {
+                using (var sr = new StreamReader(File.OpenRead(file)))
+                {
+                    var list = JsonConvert.DeserializeObject(sr.ReadToEnd(), listType);
+                    addMethod.Invoke(translations, new [] {list});
+                }
+            }
+
+            return typeof(Program).GetMethod(nameof(CombineLists)).MakeGenericMethod(contentType).Invoke(null, new object[] {translations});
+        }
+
+        public static List<T> CombineLists<T>(List<List<T>> list)
+        {
+            return list.SelectMany(x => x).ToList();
         }
 
         public static void Main(string[] args)
@@ -107,7 +183,9 @@ namespace Mod.Localizer
                 args = new[]
                 {
 #if DEBUG
-                    "Test.tmod"
+                    "--mode", "patch",
+                    "-f", "ThoriumMod",
+                    "Test.tmod",
 #else
                     "-h"
 #endif

@@ -8,6 +8,8 @@ namespace Mod.Localizer.ContentFramework
         {
         }
 
+        public TileContent() { }
+
         public string Name { get; set; } = string.Empty;
     }
 }

@@ -14,5 +14,7 @@ namespace Mod.Localizer.ContentFramework
         public IList<string> ModifyTooltips { get; set; } = new List<string>();
 
         public ItemContent(TypeDef type) : base(type) { }
+
+        public ItemContent() { }
     }
 }

@@ -11,5 +11,7 @@ namespace Mod.Localizer.ContentFramework
         public TranslationContent(TypeDef type) : base(type)
         {
         }
+
+        public TranslationContent() { }
     }
 }
