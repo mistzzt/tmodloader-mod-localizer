@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Extensions.CommandLineUtils;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using dnlib.DotNet;
+using Microsoft.Extensions.CommandLineUtils;
 using Mod.Localizer.ContentFramework;
 using Mod.Localizer.ContentProcessor;
 using Mod.Localizer.Resources;
 using Newtonsoft.Json;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
+using Terraria;
 
 namespace Mod.Localizer
 {
@@ -27,7 +30,7 @@ namespace Mod.Localizer
 
         private static void Process()
         {
-            var wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
+            var wrapper = new TmodFileWrapper(typeof(BitsByte).Assembly);
             var modFile = wrapper.LoadFile(_modFilePath);
 
             var processors =
@@ -42,6 +45,8 @@ namespace Mod.Localizer
             {
                 Directory.CreateDirectory(modFile.Name + Path.DirectorySeparatorChar + folder);
             }
+
+            Logger.Warn("Directory created: {0}", modFile.Name);
 
             if (_dump)
             {
@@ -177,6 +182,49 @@ namespace Mod.Localizer
 
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
+            {
+                var resourceName = new AssemblyName(eventArgs.Name).Name + ".dll";
+                var programDirectory = Assembly.GetExecutingAssembly().Location;
+
+                if (File.Exists(Path.Combine(programDirectory, resourceName)))
+                {
+                    return Assembly.Load(File.ReadAllBytes(Path.Combine(programDirectory, resourceName)));
+                }
+
+                var text = Array.Find(typeof(BitsByte).Assembly.GetManifestResourceNames(), element => element.EndsWith(resourceName));
+                if (text == null)
+                {
+                    return null;
+                }
+
+                using (var manifestResourceStream = typeof(BitsByte).Assembly.GetManifestResourceStream(text))
+                {
+                    if (manifestResourceStream == null)
+                    {
+                        return null;
+                    }
+
+                    var data = new byte[manifestResourceStream.Length];
+                    manifestResourceStream.Read(data, 0, data.Length);
+                    return Assembly.Load(data);
+                }
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+            {
+                var sb = new StringBuilder()
+                    .Append("================\r\n")
+                    .AppendFormat("{0}: Unhandled Exception\r\nCulture: {1}\r\nException: {2}\r\n",
+                        DateTime.Now, 
+                        Thread.CurrentThread.CurrentCulture.Name,
+                        eventArgs.ExceptionObject.ToString())
+                    .Append("================\r\n");
+
+                Logger.Error(sb);
+            };
+
+
             ConfigureLogger();
 #if DEBUG
             System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
