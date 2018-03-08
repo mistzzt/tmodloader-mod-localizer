@@ -8,6 +8,7 @@ using NLog.Targets;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using dnlib.DotNet;
 using Mod.Localizer.ContentFramework;
 using Mod.Localizer.ContentProcessor;
@@ -67,7 +68,7 @@ namespace Mod.Localizer
 
                     if (contents == null)
                     {
-                        Logger.Warn("Processor {0} not used!", processor.Name);
+                        Logger.Warn(Strings.ProcNotUsed, processor.Name);
                         continue;
                     }
 
@@ -80,12 +81,12 @@ namespace Mod.Localizer
                             JsonConvert.SerializeObject(val.ToList(), Formatting.Indented)
                         );
 
-                        Logger.Info("Dumping namespace {0}", val.Key);
+                        Logger.Info(Strings.DumpNamespace, val.Key);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn("Unhandled exception");
+                    Logger.Warn(Strings.ProcExceptionOccur, processor.FullName);
                     Logger.Error(ex);
                 }
             }
@@ -125,7 +126,7 @@ namespace Mod.Localizer
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn("Unhandled exception");
+                    Logger.Warn(Strings.ProcExceptionOccur, processor.FullName);
                     Logger.Error(ex);
                 }
             }
@@ -153,17 +154,20 @@ namespace Mod.Localizer
 
             var translations = Activator.CreateInstance(doubleListType);
             var addMethod = doubleListType.GetMethod(nameof(List<object>.Add));
+
+            Debug.Assert(addMethod != null, nameof(addMethod) + " != null");
             
             foreach (var file in Directory.EnumerateFiles(Path.Combine(folder, DefaultConfigurations.FolderMapper[procType]), "*.json"))
             {
                 using (var sr = new StreamReader(File.OpenRead(file)))
                 {
                     var list = JsonConvert.DeserializeObject(sr.ReadToEnd(), listType);
+                    
                     addMethod.Invoke(translations, new [] {list});
                 }
             }
 
-            return typeof(Program).GetMethod(nameof(CombineLists)).MakeGenericMethod(contentType).Invoke(null, new object[] {translations});
+            return typeof(Program).GetMethod(nameof(CombineLists))?.MakeGenericMethod(contentType).Invoke(null, new[] {translations});
         }
 
         public static List<T> CombineLists<T>(List<List<T>> list)
@@ -185,6 +189,7 @@ namespace Mod.Localizer
 #if DEBUG
                     "--mode", "patch",
                     "-f", "ThoriumMod",
+                    "-l", "English",
                     "Test.tmod",
 #else
                     "-h"
@@ -192,7 +197,7 @@ namespace Mod.Localizer
                 };
             }
 
-            Logger.Debug($"{typeof(Program).Namespace} started. (v{typeof(Program).Assembly.GetName().Version})");
+            Logger.Debug(Strings.ProgramVersion, typeof(Program).Namespace, typeof(Program).Assembly.GetName().Version);
 
             if (ParseCliArguments(args))
             {
@@ -243,7 +248,7 @@ namespace Mod.Localizer
                 {
                     if (!Enum.TryParse(langOpt.Value(), out _language))
                     {
-                        Logger.Error("Invalid game culture!");
+                        Logger.Error(Strings.InvalidGameCulture);
                     }
                 }
 
@@ -279,12 +284,14 @@ namespace Mod.Localizer
 
             var consoleTarget = new ColoredConsoleTarget
             {
-                Layout = layout
+                Layout = layout,
+                Encoding = Encoding.UTF8
             };
             var fileTarget = new FileTarget
             {
                 FileName = $"localizer.{DateTime.Now:MM_dd.hh_mm}.log",
-                Layout = layout
+                Layout = layout,
+                Encoding = Encoding.UTF8
             };
 
             config.AddTarget("console", consoleTarget);

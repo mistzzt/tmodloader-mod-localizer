@@ -127,15 +127,45 @@
     <value>默认值“Chinese”。错误设定会使模组加载失败</value>
   </data>
   <data name="NoFileSpecified" xml:space="preserve">
-    <value>Please specify the mod file to be processed.</value>
+    <value>请指定模组文件。</value>
   </data>
   <data name="NoSourceFolderSpecified" xml:space="preserve">
-    <value>Please specify the content folder for mod patching.</value>
+    <value>请指定文本内容路径。</value>
   </data>
   <data name="PathArgumentName" xml:space="preserve">
     <value>路径</value>
   </data>
   <data name="SourceFolderDesc" xml:space="preserve">
     <value>设置文本路径</value>
+  </data>
+  <data name="DumpExceptionOccur" xml:space="preserve">
+    <value>提取{0}时出现错误</value>
+  </data>
+  <data name="DumpNamespace" xml:space="preserve">
+    <value>正在提取命名空间 {0}</value>
+  </data>
+  <data name="InvalidContent" xml:space="preserve">
+    <value>无效文本实例：无法找到类型 "{0}"</value>
+  </data>
+  <data name="InvalidGameCulture" xml:space="preserve">
+    <value>游戏语言无效！</value>
+  </data>
+  <data name="PatchExceptionOccur" xml:space="preserve">
+    <value>导入{0}时出现错误</value>
+  </data>
+  <data name="ProcessComplete" xml:space="preserve">
+    <value>处理完毕。</value>
+  </data>
+  <data name="ProcessTargetNullCheck" xml:space="preserve">
+    <value>Value cannot be null or whitespace.</value>
+  </data>
+  <data name="ProcExceptionOccur" xml:space="preserve">
+    <value>应用{0}时出现错误</value>
+  </data>
+  <data name="ProcNotUsed" xml:space="preserve">
+    <value>处理器 {0} not used!</value>
+  </data>
+  <data name="ProgramVersion" xml:space="preserve">
+    <value>{0} 正在运行。(v{1})</value>
   </data>
 </root>

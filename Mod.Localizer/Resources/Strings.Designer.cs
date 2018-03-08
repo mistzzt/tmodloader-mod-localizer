@@ -70,11 +70,29 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dumping namespace {0}.
+        /// </summary>
+        internal static string DumpNamespace {
+            get {
+                return ResourceManager.GetString("DumpNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid content item encountered: cannot find type &quot;{0}&quot;.
         /// </summary>
         internal static string InvalidContent {
             get {
                 return ResourceManager.GetString("InvalidContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid game culture!.
+        /// </summary>
+        internal static string InvalidGameCulture {
+            get {
+                return ResourceManager.GetString("InvalidGameCulture", resourceCulture);
             }
         }
         
@@ -151,11 +169,38 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unhandled exception in processor: {0}.
+        /// </summary>
+        internal static string ProcExceptionOccur {
+            get {
+                return ResourceManager.GetString("ProcExceptionOccur", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Processor {0} not used!.
+        /// </summary>
+        internal static string ProcNotUsed {
+            get {
+                return ResourceManager.GetString("ProcNotUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set program mode: DUMP mod content or PATCH content to mod.
         /// </summary>
         internal static string ProgramModeDesc {
             get {
                 return ResourceManager.GetString("ProgramModeDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} started. (v{1}).
+        /// </summary>
+        internal static string ProgramVersion {
+            get {
+                return ResourceManager.GetString("ProgramVersion", resourceCulture);
             }
         }
         

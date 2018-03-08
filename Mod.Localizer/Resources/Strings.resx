@@ -153,4 +153,19 @@
   <data name="ProcessTargetNullCheck" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>
+  <data name="DumpNamespace" xml:space="preserve">
+    <value>Dumping namespace {0}</value>
+  </data>
+  <data name="InvalidGameCulture" xml:space="preserve">
+    <value>Invalid game culture!</value>
+  </data>
+  <data name="ProcExceptionOccur" xml:space="preserve">
+    <value>Unhandled exception in processor: {0}</value>
+  </data>
+  <data name="ProcNotUsed" xml:space="preserve">
+    <value>Processor {0} not used!</value>
+  </data>
+  <data name="ProgramVersion" xml:space="preserve">
+    <value>{0} started. (v{1})</value>
+  </data>
 </root>
