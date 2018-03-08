@@ -22,6 +22,11 @@ namespace Mod.Localizer
 
         public ITmodFile LoadFile(string path)
         {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException();
+            }
+
             var file = new TmodFile(path, _implementation);
             file.Read();
 

@@ -213,7 +213,8 @@ namespace Mod.Localizer
 
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
-                var sb = new StringBuilder()
+                var sb = new StringBuilder("Unhandled Exception")
+                    .AppendLine()
                     .Append("================\r\n")
                     .AppendFormat("{0}: Unhandled Exception\r\nCulture: {1}\r\nException: {2}\r\n",
                         DateTime.Now, 
@@ -222,6 +223,8 @@ namespace Mod.Localizer
                     .Append("================\r\n");
 
                 Logger.Error(sb);
+                
+                Environment.Exit(1);
             };
 
 
