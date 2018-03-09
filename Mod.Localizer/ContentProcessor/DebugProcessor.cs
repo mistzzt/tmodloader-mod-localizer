@@ -16,7 +16,6 @@ namespace Mod.Localizer.ContentProcessor
 
         public override void PatchContents(IReadOnlyList<Content> contents)
         {
-            PatchMainAssembly();
         }
 
         private void DumpMainAssembly()
@@ -34,11 +33,6 @@ namespace Mod.Localizer.ContentProcessor
             }
 
             Logger.Debug("Write assembly files: {0}, {1}", dllPath, pdbPath);
-        }
-
-        private void PatchMainAssembly()
-        {
-            Logger.Debug("Not implemented yet");
         }
 
         public DebugProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)

@@ -168,4 +168,10 @@
   <data name="ProgramVersion" xml:space="preserve">
     <value>{0} started. (v{1})</value>
   </data>
+  <data name="Patching" xml:space="preserve">
+    <value>Patching platform {0}</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving mod file {0}</value>
+  </data>
 </root>

@@ -108,6 +108,12 @@ namespace Mod.Localizer
             }
 
             InnerPatch(modFile, procs);
+
+            // save mod file
+            var file = string.Format(DefaultConfigurations.OutputFileNameFormat, modFile.Name);
+            Logger.Warn(Strings.Saving, file);
+
+            modFile.Write(file);
         }
 
         private static void InnerPatch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors, string dll = null)
@@ -116,6 +122,8 @@ namespace Mod.Localizer
             {
                 dll = modFile.HasFile("All.dll") ? "All.dll" : "Windows.dll";
             }
+
+            Logger.Info(Strings.Patching, dll);
 
             var module = AssemblyDef.Load(modFile.GetFile(dll)).Modules.Single();
             
@@ -230,7 +238,7 @@ namespace Mod.Localizer
 
             ConfigureLogger();
 #if DEBUG
-            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
+            //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
 #endif
 
             if (args.Length == 0)

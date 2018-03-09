@@ -133,6 +133,15 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Patching platform {0}.
+        /// </summary>
+        internal static string Patching {
+            get {
+                return ResourceManager.GetString("Patching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Path.
         /// </summary>
         internal static string PathArgumentName {
@@ -201,6 +210,15 @@ namespace Mod.Localizer.Resources {
         internal static string ProgramVersion {
             get {
                 return ResourceManager.GetString("ProgramVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving mod file {0}.
+        /// </summary>
+        internal static string Saving {
+            get {
+                return ResourceManager.GetString("Saving", resourceCulture);
             }
         }
         

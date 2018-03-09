@@ -156,9 +156,6 @@
   <data name="ProcessComplete" xml:space="preserve">
     <value>处理完毕。</value>
   </data>
-  <data name="ProcessTargetNullCheck" xml:space="preserve">
-    <value>Value cannot be null or whitespace.</value>
-  </data>
   <data name="ProcExceptionOccur" xml:space="preserve">
     <value>应用{0}时出现错误</value>
   </data>
@@ -167,5 +164,11 @@
   </data>
   <data name="ProgramVersion" xml:space="preserve">
     <value>{0} 正在运行。(v{1})</value>
+  </data>
+  <data name="Patching" xml:space="preserve">
+    <value>导入文本：{0}</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>保存模组文件：{0}</value>
   </data>
 </root>
