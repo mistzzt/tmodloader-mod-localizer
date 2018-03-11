@@ -62,6 +62,7 @@
     <Compile Include="ContentFramework\TileContent.cs" />
     <Compile Include="ContentFramework\TranslationContent.cs" />
     <Compile Include="ContentProcessor\BuffProcessor.cs" />
+    <Compile Include="ContentProcessor\BuildPropertyProcessor.cs" />
     <Compile Include="ContentProcessor\MiscTextProcessor.cs" />
     <Compile Include="ContentProcessor\NpcProcessor.cs" />
     <Compile Include="ContentProcessor\TileProcessor.cs" />

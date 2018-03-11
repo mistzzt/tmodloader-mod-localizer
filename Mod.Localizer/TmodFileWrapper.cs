@@ -191,31 +191,32 @@ namespace Mod.Localizer
         private sealed class TmodFile : ITmodFile
         {
             private readonly TmodFileImplementation _impl;
-            private readonly object _modFile;
+
+            public object Instance { get; }
 
             public TmodFile(string path, TmodFileImplementation impl)
             {
                 _impl = impl;
-                _modFile = impl.CreateTmodFile(path);
+                Instance = impl.CreateTmodFile(path);
             }
 
             public string Name
             {
-                get => _impl.InvokeMethod<string>(_modFile, TmodFileImplementation.GetName);
-                set => _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.SetName, value);
+                get => _impl.InvokeMethod<string>(Instance, TmodFileImplementation.GetName);
+                set => _impl.InvokeMethod<object>(Instance, TmodFileImplementation.SetName, value);
             }
 
-            public string Path => _impl.GetFieldValue<string>(_modFile, TmodFileImplementation.Path);
+            public string Path => _impl.GetFieldValue<string>(Instance, TmodFileImplementation.Path);
 
             public Version Version
             {
-                get => _impl.InvokeMethod<Version>(_modFile, TmodFileImplementation.GetVersion);
-                set => _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.SetVersion, value);
+                get => _impl.InvokeMethod<Version>(Instance, TmodFileImplementation.GetVersion);
+                set => _impl.InvokeMethod<object>(Instance, TmodFileImplementation.SetVersion, value);
             }
 
             public void AddFile(string fileName, byte[] data)
             {
-                _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.AddFile, fileName, data);
+                _impl.InvokeMethod<object>(Instance, TmodFileImplementation.AddFile, fileName, data);
             }
 
             public byte[] GetMainAssembly(bool? windows = null)
@@ -238,13 +239,13 @@ namespace Mod.Localizer
             }
 
             public IDictionary<string, byte[]> Files =>
-                _impl.GetFieldValue<IDictionary<string, byte[]>>(_modFile, TmodFileImplementation.Files);
+                _impl.GetFieldValue<IDictionary<string, byte[]>>(Instance, TmodFileImplementation.Files);
 
             public bool HasFile(string fileName) =>
-                _impl.InvokeMethod<bool>(_modFile, TmodFileImplementation.HasFile, fileName);
+                _impl.InvokeMethod<bool>(Instance, TmodFileImplementation.HasFile, fileName);
 
             public byte[] GetFile(string fileName) =>
-                _impl.InvokeMethod<byte[]>(_modFile, TmodFileImplementation.GetFile, fileName);
+                _impl.InvokeMethod<byte[]>(Instance, TmodFileImplementation.GetFile, fileName);
 
             public void Read()
             {
@@ -254,9 +255,9 @@ namespace Mod.Localizer
 
                 // invoke TmodFile.Read() with state and handler
                 // state will be random number greater than 4 (see TmodFile.cs#L19)
-                _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.Read, int.MaxValue, handler);
+                _impl.InvokeMethod<object>(Instance, TmodFileImplementation.Read, int.MaxValue, handler);
 
-                var ex = _impl.GetFieldValue<Exception>(_modFile, TmodFileImplementation.ReadException);
+                var ex = _impl.GetFieldValue<Exception>(Instance, TmodFileImplementation.ReadException);
                 if (ex != null)
                 {
                     throw ex;
@@ -265,12 +266,12 @@ namespace Mod.Localizer
 
             public void RemoveFile(string fileName)
             {
-                _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.RemoveFile, fileName);
+                _impl.InvokeMethod<object>(Instance, TmodFileImplementation.RemoveFile, fileName);
             }
 
             public void Save()
             {
-                _impl.InvokeMethod<object>(_modFile, TmodFileImplementation.Save);
+                _impl.InvokeMethod<object>(Instance, TmodFileImplementation.Save);
             }
 
             public void Write(string path)
@@ -279,11 +280,11 @@ namespace Mod.Localizer
                 var originPath = Path;
 
                 // invoke save method
-                _impl.SetFieldValue(_modFile, TmodFileImplementation.Path, path);
+                _impl.SetFieldValue(Instance, TmodFileImplementation.Path, path);
                 Save();
 
                 // recover its original value
-                _impl.SetFieldValue(_modFile, TmodFileImplementation.Path, originPath);
+                _impl.SetFieldValue(Instance, TmodFileImplementation.Path, originPath);
             }
 
             // ReSharper disable MemberCanBePrivate.Local
@@ -324,6 +325,8 @@ namespace Mod.Localizer
             byte[] GetMainAssembly(bool? windows = null);
 
             byte[] GetMainPdb(bool? windows = null);
+
+            object Instance { get; }
         }
     }
 }
