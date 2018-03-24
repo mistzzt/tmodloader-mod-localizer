@@ -21,6 +21,11 @@ namespace Mod.Localizer
             [typeof(TranslationProcessor)] = "Customs"
         };
 
+        public static readonly IReadOnlyDictionary<Type, string> FileMapper = new Dictionary<Type, string>()
+        {
+            [typeof(BuildPropertyProcessor)] = "Info.json",
+        };
+
         public static string GetPath(TmodFileWrapper.ITmodFile mod, Type processorType, string file)
         {
             return Path.Combine(mod.Name, FolderMapper[processorType], file);

@@ -61,6 +61,15 @@ namespace Mod.Localizer.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Build properties has been written to {0}.
+        /// </summary>
+        internal static string BuildPropWrittenToPath {
+            get {
+                return ResourceManager.GetString("BuildPropWrittenToPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exception occurred when dumping {0}.
         /// </summary>
         internal static string DumpExceptionOccur {

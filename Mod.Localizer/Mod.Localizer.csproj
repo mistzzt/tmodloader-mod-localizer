@@ -68,6 +68,7 @@
     <Compile Include="ContentProcessor\TileProcessor.cs" />
     <Compile Include="ContentProcessor\TranslationProcessor.cs" />
     <Compile Include="DefaultConfigurations.cs" />
+    <Compile Include="Extensions\Processor.Extensions.cs" />
     <Compile Include="TargetInstruction.cs" />
     <Compile Include="ContentProcessor\DebugProcessor.cs" />
     <Compile Include="ContentProcessor\ItemProcessor.cs" />

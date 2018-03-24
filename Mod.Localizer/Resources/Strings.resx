@@ -174,4 +174,7 @@
   <data name="Saving" xml:space="preserve">
     <value>Saving mod file {0}</value>
   </data>
+  <data name="BuildPropWrittenToPath" xml:space="preserve">
+    <value>Build properties has been written to {0}</value>
+  </data>
 </root>
