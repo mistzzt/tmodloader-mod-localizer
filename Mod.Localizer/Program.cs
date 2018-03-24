@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,8 +24,13 @@ namespace Mod.Localizer
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private static bool _dump = true;
-        private static string _modFilePath, _sourcePath;
+        private static string _modFilePath;
         private static GameCultures _language = DefaultConfigurations.DefaultLanguage;
+
+        /// <summary>
+        /// Source folder path for processors accessing extra files.
+        /// </summary>
+        internal static string SourcePath { get; private set; }
 
         private static void Process()
         {
@@ -126,15 +130,15 @@ namespace Mod.Localizer
             Logger.Info(Strings.Patching, dll);
 
             var module = AssemblyDef.Load(modFile.GetFile(dll)).Modules.Single();
-            
+
             foreach (var processor in processors)
             {
                 try
                 {
                     var proc = Activator.CreateInstance(processor, modFile, module, _language);
-                    var tran = LoadFiles(_sourcePath, processor);
+                    var tran = LoadFiles(SourcePath, processor);
 
-                    processor.GetMethod(nameof(Processor<Content>.PatchContents))?.Invoke(proc, new [] {tran});
+                    processor.GetMethod(nameof(Processor<Content>.PatchContents))?.Invoke(proc, new[] { tran });
 
                 }
                 catch (Exception ex)
@@ -152,40 +156,42 @@ namespace Mod.Localizer
             }
         }
 
-        private static object LoadFiles(string folder, Type procType)
+        private static object LoadFiles(string contentPath, Type processorType)
         {
-            if (!DefaultConfigurations.FolderMapper.ContainsKey(procType))
+            Debug.Assert(processorType.BaseType != null, "processorType.BaseType != null");
+            var contentType = processorType.BaseType.GetGenericArguments().Single();
+
+            var loadFilesMethod = typeof(Program).GetMethod(nameof(LoadFiles), BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
+            loadFilesMethod = loadFilesMethod?.MakeGenericMethod(processorType, contentType);
+
+            Debug.Assert(loadFilesMethod != null, nameof(loadFilesMethod) + " != null");
+            return loadFilesMethod.Invoke(null, new object[] { contentPath });
+        }
+
+        private static IList<TContent> LoadFiles<TProcessor, TContent>(string contentPath)
+            where TContent : Content
+            where TProcessor : Processor<TContent>
+        {
+            if (!DefaultConfigurations.FolderMapper.ContainsKey(typeof(TProcessor)))
             {
                 return null;
             }
 
-            Debug.Assert(procType.BaseType != null, "procType.BaseType != null");
-            var contentType = procType.BaseType.GetGenericArguments().Single();
-            var listType = typeof(List<>).MakeGenericType(contentType);
+            var path = Path.Combine(contentPath, DefaultConfigurations.FolderMapper[typeof(TProcessor)]);
 
-            var doubleListType = typeof(List<>).MakeGenericType(listType);
+            var list = new List<TContent>();
 
-            var translations = Activator.CreateInstance(doubleListType);
-            var addMethod = doubleListType.GetMethod(nameof(List<object>.Add));
-
-            Debug.Assert(addMethod != null, nameof(addMethod) + " != null");
-            
-            foreach (var file in Directory.EnumerateFiles(Path.Combine(folder, DefaultConfigurations.FolderMapper[procType]), "*.json"))
+            foreach (var file in Directory.EnumerateFiles(path, "*.json"))
             {
                 using (var sr = new StreamReader(File.OpenRead(file)))
                 {
-                    var list = JsonConvert.DeserializeObject(sr.ReadToEnd(), listType);
-                    
-                    addMethod.Invoke(translations, new [] {list});
+                    list.AddRange(JsonConvert.DeserializeObject<List<TContent>>(sr.ReadToEnd()));
                 }
             }
 
-            return typeof(Program).GetMethod(nameof(CombineLists))?.MakeGenericMethod(contentType).Invoke(null, new[] {translations});
-        }
+            Logger.Debug("Loaded from {0}", path);
 
-        public static List<T> CombineLists<T>(List<List<T>> list)
-        {
-            return list.SelectMany(x => x).ToList();
+            return list;
         }
 
         public static void Main(string[] args)
@@ -225,13 +231,13 @@ namespace Mod.Localizer
                     .AppendLine()
                     .Append("================\r\n")
                     .AppendFormat("{0}: Unhandled Exception\r\nCulture: {1}\r\nException: {2}\r\n",
-                        DateTime.Now, 
+                        DateTime.Now,
                         Thread.CurrentThread.CurrentCulture.Name,
                         eventArgs.ExceptionObject.ToString())
                     .Append("================\r\n");
 
                 Logger.Error(sb);
-                
+
                 Environment.Exit(1);
             };
 
@@ -262,7 +268,7 @@ namespace Mod.Localizer
             {
                 Process();
 
-                Logger.Info(Strings.ProcessComplete);
+                Logger.Fatal(Strings.ProcessComplete);
             }
 
 #if DEBUG
@@ -300,7 +306,7 @@ namespace Mod.Localizer
 
                 if (srcOpt.HasValue())
                 {
-                    _sourcePath = srcOpt.Value();
+                    SourcePath = srcOpt.Value();
                 }
 
                 if (langOpt.HasValue())
@@ -326,7 +332,7 @@ namespace Mod.Localizer
             }
 
             // ReSharper disable once InvertIf
-            if (string.IsNullOrWhiteSpace(_sourcePath) && !_dump)
+            if (string.IsNullOrWhiteSpace(SourcePath) && !_dump)
             {
                 Logger.Error(Strings.NoSourceFolderSpecified);
                 return false;
