@@ -171,4 +171,7 @@
   <data name="Saving" xml:space="preserve">
     <value>保存模组文件：{0}</value>
   </data>
+  <data name="BuildPropWrittenToPath" xml:space="preserve">
+    <value>模组介绍等信息已经导出至 {0}</value>
+  </data>
 </root>
