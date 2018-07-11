@@ -48,8 +48,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="Terraria, Version=1.3.5.1, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Terraria, Version=1.3.5.1, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\References\Terraria.exe</HintPath>
     </Reference>
   </ItemGroup>
@@ -69,6 +68,8 @@
     <Compile Include="ContentProcessor\TranslationProcessor.cs" />
     <Compile Include="DefaultConfigurations.cs" />
     <Compile Include="Extensions\Processor.Extensions.cs" />
+    <Compile Include="Localizer.cs" />
+    <Compile Include="RunningMode.cs" />
     <Compile Include="TargetInstruction.cs" />
     <Compile Include="ContentProcessor\DebugProcessor.cs" />
     <Compile Include="ContentProcessor\ItemProcessor.cs" />

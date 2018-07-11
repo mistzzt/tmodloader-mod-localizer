@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using dnlib.DotNet;
 using Microsoft.Extensions.CommandLineUtils;
-using Mod.Localizer.ContentFramework;
-using Mod.Localizer.ContentProcessor;
 using Mod.Localizer.Resources;
-using Newtonsoft.Json;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -23,7 +17,7 @@ namespace Mod.Localizer
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static bool _dump = true;
+        private static RunningMode _mode;
         private static string _modFilePath;
         private static GameCultures _language = DefaultConfigurations.DefaultLanguage;
 
@@ -32,170 +26,10 @@ namespace Mod.Localizer
         /// </summary>
         internal static string SourcePath { get; private set; }
 
-        private static void Process()
-        {
-            var wrapper = new TmodFileWrapper(typeof(BitsByte).Assembly);
-            var modFile = wrapper.LoadFile(_modFilePath);
-
-            var processors =
-                typeof(Program)
-                    .Assembly
-                    .GetTypes()
-                    .Where(t => t.BaseType?.IsGenericType == true &&
-                                t.BaseType.GetGenericTypeDefinition() == typeof(Processor<>));
-
-            Directory.CreateDirectory(modFile.Name);
-            foreach (var folder in DefaultConfigurations.FolderMapper.Values)
-            {
-                Directory.CreateDirectory(modFile.Name + Path.DirectorySeparatorChar + folder);
-            }
-
-            Logger.Warn("Directory created: {0}", modFile.Name);
-
-            if (_dump)
-            {
-                Dump(modFile, processors);
-            }
-            else
-            {
-                Patch(modFile, processors);
-            }
-        }
-
-        private static void Dump(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors)
-        {
-            var module = AssemblyDef.Load(modFile.GetMainAssembly()).Modules.Single();
-
-            foreach (var processor in processors)
-            {
-                try
-                {
-                    var proc = Activator.CreateInstance(processor, modFile, module, _language);
-
-                    var contents =
-                        (IReadOnlyList<Content>)processor.GetMethod(nameof(Processor<Content>.DumpContents))?.Invoke(proc, new object[0]);
-
-                    if (contents == null)
-                    {
-                        Logger.Warn(Strings.ProcNotUsed, processor.Name);
-                        continue;
-                    }
-
-                    Logger.Debug("Using " + processor.Name);
-
-                    foreach (var val in contents.GroupBy(x => x.Namespace, x => x))
-                    {
-                        File.WriteAllText(
-                            DefaultConfigurations.GetPath(modFile, processor, val.Key + ".json"),
-                            JsonConvert.SerializeObject(val.ToList(), Formatting.Indented)
-                        );
-
-                        Logger.Info(Strings.DumpNamespace, val.Key);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn(Strings.ProcExceptionOccur, processor.FullName);
-                    Logger.Error(ex);
-                }
-            }
-        }
-
-        private static void Patch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors)
-        {
-            const string mono = "Mono.dll";
-
-            var procs = processors as Type[] ?? processors.ToArray();
-            if (modFile.HasFile(mono))
-            {
-                InnerPatch(modFile, procs, mono);
-            }
-
-            InnerPatch(modFile, procs);
-
-            // save mod file
-            var file = string.Format(DefaultConfigurations.OutputFileNameFormat, modFile.Name);
-            Logger.Warn(Strings.Saving, file);
-
-            modFile.Write(file);
-        }
-
-        private static void InnerPatch(TmodFileWrapper.ITmodFile modFile, IEnumerable<Type> processors, string dll = null)
-        {
-            if (string.IsNullOrWhiteSpace(dll))
-            {
-                dll = modFile.HasFile("All.dll") ? "All.dll" : "Windows.dll";
-            }
-
-            Logger.Info(Strings.Patching, dll);
-
-            var module = AssemblyDef.Load(modFile.GetFile(dll)).Modules.Single();
-
-            foreach (var processor in processors)
-            {
-                try
-                {
-                    var proc = Activator.CreateInstance(processor, modFile, module, _language);
-                    var tran = LoadFiles(SourcePath, processor);
-
-                    processor.GetMethod(nameof(Processor<Content>.PatchContents))?.Invoke(proc, new[] { tran });
-
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn(Strings.ProcExceptionOccur, processor.FullName);
-                    Logger.Error(ex);
-                }
-            }
-
-            using (var ms = new MemoryStream())
-            {
-                module.Assembly.Write(ms);
-
-                modFile.Files[dll] = ms.ToArray();
-            }
-        }
-
-        private static object LoadFiles(string contentPath, Type processorType)
-        {
-            Debug.Assert(processorType.BaseType != null, "processorType.BaseType != null");
-            var contentType = processorType.BaseType.GetGenericArguments().Single();
-
-            var loadFilesMethod = typeof(Program).GetMethod(nameof(LoadFiles), BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(string) }, null);
-            loadFilesMethod = loadFilesMethod?.MakeGenericMethod(processorType, contentType);
-
-            Debug.Assert(loadFilesMethod != null, nameof(loadFilesMethod) + " != null");
-            return loadFilesMethod.Invoke(null, new object[] { contentPath });
-        }
-
-        private static IList<TContent> LoadFiles<TProcessor, TContent>(string contentPath)
-            where TContent : Content
-            where TProcessor : Processor<TContent>
-        {
-            if (!DefaultConfigurations.FolderMapper.ContainsKey(typeof(TProcessor)))
-            {
-                return null;
-            }
-
-            var path = Path.Combine(contentPath, DefaultConfigurations.FolderMapper[typeof(TProcessor)]);
-
-            var list = new List<TContent>();
-
-            foreach (var file in Directory.EnumerateFiles(path, "*.json"))
-            {
-                using (var sr = new StreamReader(File.OpenRead(file)))
-                {
-                    list.AddRange(JsonConvert.DeserializeObject<List<TContent>>(sr.ReadToEnd()));
-                }
-            }
-
-            Logger.Debug("Loaded from {0}", path);
-
-            return list;
-        }
-
         public static void Main(string[] args)
         {
+            ConfigureLogger();
+            
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
                 var resourceName = new AssemblyName(eventArgs.Name).Name + ".dll";
@@ -240,11 +74,9 @@ namespace Mod.Localizer
 
                 Environment.Exit(1);
             };
-
-
-            ConfigureLogger();
+        
 #if DEBUG
-            //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
 #endif
 
             if (args.Length == 0)
@@ -266,7 +98,8 @@ namespace Mod.Localizer
 
             if (ParseCliArguments(args))
             {
-                Process();
+                var engine = new Localizer(_modFilePath, SourcePath, RunningMode.Dump, _language);
+                engine.Run();
 
                 Logger.Fatal(Strings.ProcessComplete);
             }
@@ -301,7 +134,8 @@ namespace Mod.Localizer
             {
                 if (modeOpt.HasValue())
                 {
-                    _dump = !string.Equals(modeOpt.Value(), "patch", StringComparison.OrdinalIgnoreCase);
+                    _mode = !string.Equals(modeOpt.Value(), "patch", StringComparison.OrdinalIgnoreCase) ?
+                        RunningMode.Dump : RunningMode.Patch;
                 }
 
                 if (srcOpt.HasValue())
@@ -332,7 +166,7 @@ namespace Mod.Localizer
             }
 
             // ReSharper disable once InvertIf
-            if (string.IsNullOrWhiteSpace(SourcePath) && !_dump)
+            if (string.IsNullOrWhiteSpace(SourcePath) && _mode == RunningMode.Patch)
             {
                 Logger.Error(Strings.NoSourceFolderSpecified);
                 return false;
@@ -343,7 +177,7 @@ namespace Mod.Localizer
 
         private static void ConfigureLogger()
         {
-            const string layout = "${date:format=HH\\:mm\\:ss}\t|${level}\t|${logger}\t|${message}\t";
+            const string layout = "${level}\t|${logger}\t|${message}\t";
 
             var config = new LoggingConfiguration();
 
