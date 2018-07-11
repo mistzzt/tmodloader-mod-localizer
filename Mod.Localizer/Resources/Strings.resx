@@ -124,7 +124,7 @@
     <value>Set program mode: DUMP mod content or PATCH content to mod</value>
   </data>
   <data name="LanguageDesc" xml:space="preserve">
-    <value>Default: Chinese. Wrong language inputted may cause mod loading FAILURE!!</value>
+    <value>Default: English. Wrong language inputted may cause mod loading FAILURE!!</value>
   </data>
   <data name="NoFileSpecified" xml:space="preserve">
     <value>Please specify the mod file to be processed.</value>
@@ -176,5 +176,8 @@
   </data>
   <data name="BuildPropWrittenToPath" xml:space="preserve">
     <value>Build properties has been written to {0}</value>
+  </data>
+  <data name="SourcePathDoesNotExist" xml:space="preserve">
+    <value>Source directory does not exist!</value>
   </data>
 </root>

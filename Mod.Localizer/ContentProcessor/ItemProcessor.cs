@@ -32,6 +32,13 @@ namespace Mod.Localizer.ContentProcessor
                     continue;
                 }
 
+                // some mod may have custom translation here
+                // source will be ldloc.x
+                if (((IMethodDefOrRef) source.Operand)?.Name?.ToString() == null)
+                {
+                    continue;
+                }
+
                 switch (((IMethodDefOrRef)source.Operand).Name)
                 {
                     case "get_Tooltip":

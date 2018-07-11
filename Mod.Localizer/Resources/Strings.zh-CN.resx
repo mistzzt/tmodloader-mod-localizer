@@ -124,7 +124,7 @@
     <value>设置程序模式：dump（提取文本）patch（导入文本）</value>
   </data>
   <data name="LanguageDesc" xml:space="preserve">
-    <value>默认值“Chinese”。错误设定会使模组加载失败</value>
+    <value>默认值“English”。错误设定会使模组加载失败</value>
   </data>
   <data name="NoFileSpecified" xml:space="preserve">
     <value>请指定模组文件。</value>
