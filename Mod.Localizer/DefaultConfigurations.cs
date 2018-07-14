@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Mod.Localizer.ContentProcessor;
+using Mod.Localizer.Processor;
 
 namespace Mod.Localizer
 {

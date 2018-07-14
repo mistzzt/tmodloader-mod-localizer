@@ -7,7 +7,7 @@ using Mod.Localizer.ContentFramework;
 using Mod.Localizer.Emit;
 using Mod.Localizer.Extensions;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     public sealed class MiscTextProcessor : Processor<MiscContent>
     {

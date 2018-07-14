@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using dnlib.DotNet;
 using Mod.Localizer.ContentFramework;
 using Mod.Localizer.Extensions;
 using Terraria.ModLoader;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     public sealed class BuffProcessor : Processor<BuffContent>
     {

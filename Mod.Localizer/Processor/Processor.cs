@@ -11,7 +11,7 @@ using Mod.Localizer.Emit.Provider;
 using Mod.Localizer.Resources;
 using NLog;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     public abstract class Processor<T> where T : Content
     {

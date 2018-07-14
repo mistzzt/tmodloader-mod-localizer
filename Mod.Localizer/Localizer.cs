@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using dnlib.DotNet;
 using Mod.Localizer.ContentFramework;
-using Mod.Localizer.ContentProcessor;
+using Mod.Localizer.Processor;
 using Mod.Localizer.Resources;
 using Newtonsoft.Json;
 using NLog;

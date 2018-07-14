@@ -5,7 +5,7 @@ using Mod.Localizer.ContentFramework;
 using Mod.Localizer.Extensions;
 using Terraria.ModLoader;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     public sealed class NpcProcessor : Processor<NpcContent>
     {

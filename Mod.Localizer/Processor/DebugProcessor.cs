@@ -3,7 +3,7 @@ using System.IO;
 using dnlib.DotNet;
 using Mod.Localizer.ContentFramework;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     internal sealed class DebugProcessor : Processor<Content>
     {

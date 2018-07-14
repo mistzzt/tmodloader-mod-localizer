@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Mod.Localizer.ContentFramework;
-using Mod.Localizer.ContentProcessor;
+using Mod.Localizer.Processor;
 
 namespace Mod.Localizer.Extensions
 {

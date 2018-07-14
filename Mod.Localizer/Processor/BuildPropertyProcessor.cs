@@ -5,13 +5,12 @@ using System.Linq;
 using System.Reflection;
 using dnlib.DotNet;
 using Mod.Localizer.ContentFramework;
-using Mod.Localizer.Extensions;
 using Mod.Localizer.Resources;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Terraria;
 
-namespace Mod.Localizer.ContentProcessor
+namespace Mod.Localizer.Processor
 {
     public sealed class BuildPropertyProcessor : Processor<Content>
     {
