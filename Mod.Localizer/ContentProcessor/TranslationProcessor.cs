@@ -79,7 +79,7 @@ namespace Mod.Localizer.ContentProcessor
             }
         }
 
-        public TranslationProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public TranslationProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

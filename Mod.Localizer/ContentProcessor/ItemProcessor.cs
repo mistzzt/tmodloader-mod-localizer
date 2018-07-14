@@ -112,7 +112,7 @@ namespace Mod.Localizer.ContentProcessor
             return result.ToArray();
         }
 
-        public ItemProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public ItemProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

@@ -20,8 +20,7 @@ namespace Mod.Localizer
         public GameCultures Language { get; }
         public string ModPath { get; }
         
-        private TmodFileWrapper _wrapper;
-        private TmodFileWrapper.ITmodFile _mod;
+        public TmodFileWrapper.ITmodFile Mod { get; private set; }
         
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -48,8 +47,8 @@ namespace Mod.Localizer
         {
             try
             {
-                _wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
-                _mod = _wrapper.LoadFile(ModPath);
+                var wrapper = new TmodFileWrapper(typeof(Terraria.BitsByte).Assembly);
+                Mod = wrapper.LoadFile(ModPath);
             }
             catch (Exception ex)
             {
@@ -77,30 +76,31 @@ namespace Mod.Localizer
             const string windows = "Windows.dll";
             const string all = "All.dll";
 
-            var main = _mod.HasFile(windows) ? windows : all;
+            // determine which dll file to use
+            var main = Mod.HasFile(windows) ? windows : all;
 
+            // patch dll files on all platforms
             var procs = processors.ToArray();
-            if (_mod.HasFile(mono)) InnerPatch(procs, mono);
+            if (Mod.HasFile(mono)) InnerPatch(procs, mono);
             InnerPatch(procs, main);
             
             // save mod file
-            var file = string.Format(DefaultConfigurations.OutputFileNameFormat, _mod.Name);
+            var file = string.Format(DefaultConfigurations.OutputFileNameFormat, Mod.Name);
             _logger.Warn(Strings.Saving, file);
-
-            _mod.Write(file);
+            Mod.Write(file);
         }
 
         private void InnerPatch(IEnumerable<Type> processors, string dll)
         {
             _logger.Info(Strings.Patching, dll);
 
-            var module = AssemblyDef.Load(_mod.GetFile(dll)).Modules.Single();
+            var module = AssemblyDef.Load(Mod.GetFile(dll)).Modules.Single();
 
             foreach (var processor in processors)
             {
                 try
                 {
-                    var proc = Activator.CreateInstance(processor, _mod, module, Language);
+                    var proc = Activator.CreateInstance(processor, this, module);
                     var tran = LoadFiles(LocalizationSourcePath, processor);
 
                     processor.GetMethod(nameof(Processor<Content>.PatchContents))?.Invoke(proc, new[] { tran });
@@ -117,7 +117,7 @@ namespace Mod.Localizer
             {
                 module.Assembly.Write(ms);
 
-                _mod.Files[dll] = ms.ToArray();
+                Mod.Files[dll] = ms.ToArray();
             }
         }
 
@@ -161,7 +161,7 @@ namespace Mod.Localizer
         
         private void Dump(IEnumerable<Type> processors)
         {
-            LocalizationSourcePath = LocalizationSourcePath ?? _mod.Name;
+            LocalizationSourcePath = LocalizationSourcePath ?? Mod.Name;
             
             if (Directory.Exists(LocalizationSourcePath) &&
                 DefaultConfigurations.FolderMapper.Values.Any(dir =>
@@ -180,15 +180,15 @@ namespace Mod.Localizer
                 Directory.CreateDirectory(Path.Combine(LocalizationSourcePath, folder));
             }
 
-            _logger.Warn("Directory created: {0}", _mod.Name);
+            _logger.Warn("Directory created: {0}", Mod.Name);
 
-            var module = AssemblyDef.Load(_mod.GetMainAssembly()).Modules.Single();
+            var module = AssemblyDef.Load(Mod.GetMainAssembly()).Modules.Single();
 
             foreach (var processor in processors)
             {
                 try
                 {
-                    var proc = Activator.CreateInstance(processor, _mod, module, Language);
+                    var proc = Activator.CreateInstance(processor, this, module);
 
                     var contents =
                         (IReadOnlyList<Content>)processor.GetMethod(nameof(Processor<Content>.DumpContents))?.Invoke(proc, new object[0]);
@@ -204,7 +204,7 @@ namespace Mod.Localizer
                     foreach (var val in contents.GroupBy(x => x.Namespace, x => x))
                     {
                         File.WriteAllText(
-                            DefaultConfigurations.GetPath(_mod, processor, val.Key + ".json"),
+                            DefaultConfigurations.GetPath(Mod, processor, val.Key + ".json"),
                             JsonConvert.SerializeObject(val.ToList(), Formatting.Indented)
                         );
 

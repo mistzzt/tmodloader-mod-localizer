@@ -17,10 +17,6 @@ namespace Mod.Localizer.ContentProcessor
     {
         private readonly BuildPropHelper _helper = new BuildPropHelper();
 
-        public BuildPropertyProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
-        {
-        }
-
         public override IReadOnlyList<Content> DumpContents()
         {
             var path = this.GetExtraDataPath();
@@ -124,6 +120,10 @@ namespace Mod.Localizer.ContentProcessor
             /// Selects all fields of <see cref="Terraria.ModLoader.BuildProperties"/> that should be included in serialization.
             /// </summary>
             private static bool FieldSelector(FieldInfo f) => f.FieldType == typeof(string);
+        }
+
+        public BuildPropertyProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
+        {
         }
     }
 }

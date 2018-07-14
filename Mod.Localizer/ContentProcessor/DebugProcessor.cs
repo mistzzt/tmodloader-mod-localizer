@@ -35,7 +35,7 @@ namespace Mod.Localizer.ContentProcessor
             Logger.Debug("Write assembly files: {0}, {1}", dllPath, pdbPath);
         }
 
-        public DebugProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public DebugProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

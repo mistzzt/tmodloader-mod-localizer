@@ -114,7 +114,7 @@ namespace Mod.Localizer.ContentProcessor
             return miscs;
         }
 
-        public MiscTextProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public MiscTextProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

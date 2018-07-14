@@ -40,7 +40,7 @@ namespace Mod.Localizer.ContentProcessor
             return new TargetInstruction[0];
         }
 
-        public TileProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public TileProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using dnlib.DotNet;
@@ -16,21 +17,22 @@ namespace Mod.Localizer.ContentProcessor
     {
         protected readonly Logger Logger;
         protected readonly ModuleDef ModModule;
-        protected readonly TmodFileWrapper.ITmodFile ModFile;
         protected readonly ITranslationBaseProvider Provider;
-        protected readonly IDictionary<string, MethodInfo> InstructionSelectors;
 
-        protected Processor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture)
+        protected TmodFileWrapper.ITmodFile ModFile => _localizer.Mod;
+        
+        private readonly Localizer _localizer;
+        private readonly IDictionary<string, MethodInfo> _instructionSelectors;
+
+        protected Processor(Localizer localizer, ModuleDef modModule)
         {
-            ModFile = modFile ?? throw new ArgumentNullException(nameof(modFile));
+            _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
             ModModule = modModule ?? throw new ArgumentNullException(nameof(modModule));
-
+            
             Logger = LogManager.GetLogger("Proc." + GetType().Name);
-
-            InstructionSelectors = new Dictionary<string, MethodInfo>();
-
-            Provider = new HardCodedTranslationProvider(modFile, modModule, culture);
-
+            Provider = new HardCodedTranslationProvider(_localizer.Mod, ModModule, _localizer.Language);
+            
+            _instructionSelectors = new Dictionary<string, MethodInfo>();
             InitializeInstructionSelectors();
         }
 
@@ -72,7 +74,7 @@ namespace Mod.Localizer.ContentProcessor
         {
             var content = (T)Activator.CreateInstance(typeof(T), type);
 
-            foreach (var kvp in InstructionSelectors)
+            foreach (var kvp in _instructionSelectors)
             {
                 var properties = kvp.Value.GetCustomAttribute<ProcessTargetAttribute>();
 
@@ -127,7 +129,7 @@ namespace Mod.Localizer.ContentProcessor
 
         protected virtual void PatchContent(TypeDef type, T content)
         {
-            foreach (var kvp in InstructionSelectors)
+            foreach (var kvp in _instructionSelectors)
             {
                 var properties = kvp.Value.GetCustomAttribute<ProcessTargetAttribute>();
 
@@ -191,6 +193,16 @@ namespace Mod.Localizer.ContentProcessor
             }
         }
 
+        protected virtual string GetExtraDataPath()
+        {
+            if (!DefaultConfigurations.FileMapper.ContainsKey(GetType()))
+            {
+                throw new InvalidOperationException($"{GetType().FullName} does not have an extra file.");
+            }
+
+            return Path.Combine(_localizer.LocalizationSourcePath, DefaultConfigurations.FileMapper[GetType()]);
+        }
+
         protected virtual bool Selector(TypeDef type)
         {
             throw new NotImplementedException();
@@ -209,7 +221,7 @@ namespace Mod.Localizer.ContentProcessor
             {
                 var attr = method.GetCustomAttribute<ProcessTargetAttribute>();
 
-                InstructionSelectors.Add(attr.Method, method);
+                _instructionSelectors.Add(attr.Method, method);
             }
         }
     }

@@ -55,7 +55,7 @@ namespace Mod.Localizer.ContentProcessor
             return targets;
         }
 
-        public BuffProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public BuffProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }

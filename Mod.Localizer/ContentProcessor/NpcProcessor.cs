@@ -93,7 +93,7 @@ namespace Mod.Localizer.ContentProcessor
                 .ToArray();
         }
 
-        public NpcProcessor(TmodFileWrapper.ITmodFile modFile, ModuleDef modModule, GameCultures culture) : base(modFile, modModule, culture)
+        public NpcProcessor(Localizer localizer, ModuleDef modModule) : base(localizer, modModule)
         {
         }
     }
