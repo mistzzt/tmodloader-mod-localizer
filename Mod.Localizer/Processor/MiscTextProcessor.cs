@@ -84,7 +84,7 @@ namespace Mod.Localizer.Processor
                     }
 
                     // `Main.NewText` parameters
-                    instruction = instructions[index - 5];
+                    instruction = instructions[index - 3];
 
                     if (instruction.OpCode.Equals(OpCodes.Ldstr))
                     {
